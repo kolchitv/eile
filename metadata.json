@@ -1,0 +1,6 @@
+{
+  "name": "Arabfacile.com",
+  "description": "Plateforme interactive et pédagogique d'apprentissage de la langue arabe du niveau A1 au C2 pour le public francophone, avec dialogues oraux, fiches de lecture, calligraphie et tuteur intelligent. Conçue par Prof SAID.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
