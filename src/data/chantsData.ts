@@ -36,6 +36,8 @@ export interface ArabicChant {
   themeFr: string;
   summaryAr: string;
   summaryFr: string;
+  defaultVideoUrl?: string;
+  videoTitle?: string;
   verses: ChantVerse[];
   vocabulary: ChantVocabItem[];
   quiz: ChantQuizQuestion[];
@@ -57,6 +59,8 @@ export const ARABIC_CHANTS_DATA: ArabicChant[] = [
     themeFr: 'L’eau, la pluie, la nature et le cycle de vie',
     summaryAr: 'أنشودة شعرية عذبة تحكي رحلة قطرات الماء من البحر إلى السحاب ثم هطول المطر لترقص الأشجار فرحاً بالحياة.',
     summaryFr: 'Un poème mélodieux racontant le voyage d’une goutte d’eau, de la mer vers les nuages, jusqu’à sa douce retombée en pluie fertilisant la terre.',
+    defaultVideoUrl: 'https://www.youtube.com/embed/gW7_N1m8K0U',
+    videoTitle: 'أنشودة قطرة ماء ودورة المطر - للأطفال',
     pedagogicalObjectivesFr: [
       'Apprendre le vocabulaire poétique lié à la météo et à l’eau (مَاء، سُحُب، مَطَر، بَحْر، شَجَر).',
       'Maîtriser le rythme prosodique arabe (القافية والروي) et la musicalité de la langue.',
@@ -162,6 +166,8 @@ export const ARABIC_CHANTS_DATA: ArabicChant[] = [
     themeFr: 'La langue arabe, l’alphabet, l’école, les arts et la patrie',
     summaryAr: 'أنشودة بهيجة تُبرز جمال لغة الضاد، وتدعو الأطفال للقراءة والرسم بالفرشاة وتزيين الحروف بالألوان وبناء الوطن بالعلم والحب.',
     summaryFr: 'Un hymne chaleureux célébrant la beauté de la langue arabe, invitant les écoliers à écrire, lire, peindre leurs rêves et servir leur pays par le savoir.',
+    defaultVideoUrl: 'https://www.youtube.com/embed/g2fR07zYq-c',
+    videoTitle: 'أنشودة الحروف ولغتي العربية للأطفال',
     pedagogicalObjectivesFr: [
       'Apprendre les noms de lettres et leur épellation poétique (ب، ل، د، ي = بَلَدِي / ر، و، ح، ي = رُوحِي / ع، ل، م، ي = عِلْمِي).',
       'Enrichir le lexique scolaire et artistique (قَلَم، فُرْشَاة، كُتُب، أَلْوَان، مَدْرَسَة، أَصْحَاب).',
@@ -314,6 +320,8 @@ export const ARABIC_CHANTS_DATA: ArabicChant[] = [
     themeFr: 'Les animaux de compagnie, le chaton, le jeu et l’amitié',
     summaryAr: 'أنشودة طفولية رقيقة تصف القطة الصغيرة «نَمِيرَة» ذات الشعر الجميل والذيل الطويل ومهارتها في اللعب.',
     summaryFr: 'Une comptine entraînante décrivant la petite chatte « Namira » avec son beau pelage soyeux, sa longue queue et son habileté espiègle.',
+    defaultVideoUrl: 'https://www.youtube.com/embed/g2fR07zYq-c',
+    videoTitle: 'أنشودة القطة نَمِيرة للأطفال',
     pedagogicalObjectivesFr: [
       'Apprendre le vocabulaire descriptif des animaux (قِطَّة، شَعْر، ذَيْل، صَغِيرَة، طَوِيل، جَمِيل).',
       'Pratiquer les rimes jumelées en -َة (-ira) et -يل (-il) et -ِّي (-lī).',
