@@ -22,6 +22,7 @@ interface FooterProps {
   onOpenSpeedReading?: () => void;
   onOpenCompetencies?: () => void;
   onOpenChants?: (chantId?: string) => void;
+  onOpenInstallApp?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -34,6 +35,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenSpeedReading,
   onOpenCompetencies,
   onOpenChants,
+  onOpenInstallApp,
 }) => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -257,6 +259,33 @@ export const Footer: React.FC<FooterProps> = ({
                 </div>
                 <span className="text-xs sm:text-sm font-medium">@alarabiaeasy</span>
               </a>
+
+              <a 
+                href="https://t.me/arabiaeasy" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-sky-700 hover:text-sky-900 transition-colors group font-bold"
+              >
+                <div className="w-7 h-7 rounded-lg bg-sky-50 group-hover:bg-sky-100 flex items-center justify-center transition-colors">
+                  <Send className="w-4 h-4 text-sky-600 -rotate-12" />
+                </div>
+                <span className="text-xs sm:text-sm">تلغرام: @arabiaeasy ✈️</span>
+              </a>
+
+              {onOpenInstallApp && (
+                <button
+                  type="button"
+                  onClick={onOpenInstallApp}
+                  className="flex items-center gap-2.5 text-violet-700 hover:text-violet-900 transition-colors group font-bold w-full text-right cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-violet-50 group-hover:bg-violet-100 flex items-center justify-center transition-colors">
+                    <span className="text-xs">📲</span>
+                  </div>
+                  <span className="text-xs sm:text-sm">
+                    {language === 'ar' ? 'تثبيت التطبيق على جهازك' : 'Installer l\'application'}
+                  </span>
+                </button>
+              )}
 
               <div className="pt-2">
                 <a

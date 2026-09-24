@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="50%" stop-color="#ec4899" />
+      <stop offset="100%" stop-color="#f43f5e" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#ec4899" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base with Soft Shadow -->
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="url(#bgGrad)" filter="url(#shadow)" />
+
+  <!-- Inner Subtle Border -->
+  <rect x="36" y="36" width="440" height="440" rx="108" fill="none" stroke="#ffffff" stroke-width="4" stroke-opacity="0.35" />
+
+  <!-- Smartphone Silhouette Frame (like in screenshot) -->
+  <rect x="156" y="96" width="200" height="320" rx="36" fill="#ffffff" fill-opacity="0.18" stroke="#ffffff" stroke-width="8" stroke-opacity="0.9" />
+  
+  <!-- Smartphone Speaker Notch -->
+  <rect x="226" y="118" width="60" height="8" rx="4" fill="#ffffff" fill-opacity="0.9" />
+  
+  <!-- Smartphone Screen Background -->
+  <rect x="174" y="140" width="164" height="220" rx="20" fill="#ffffff" fill-opacity="0.95" />
+
+  <!-- Arabic Calligraphy "ض" inside the screen -->
+  <text x="256" y="278" font-family="'Amiri', 'Tajawal', serif, sans-serif" font-size="110" font-weight="900" fill="#047857" text-anchor="middle">ض</text>
+
+  <!-- Home Indicator / Button on Phone -->
+  <circle cx="256" cy="388" r="12" fill="#ffffff" fill-opacity="0.85" />
+
+  <!-- Sparkles -->
+  <circle cx="120" cy="130" r="10" fill="url(#goldGrad)" />
+  <circle cx="395" cy="370" r="14" fill="url(#goldGrad)" />
+  <path d="M 400 130 L 406 146 L 422 152 L 406 158 L 400 174 L 394 158 L 378 152 L 394 146 Z" fill="#ffffff" />
+</svg>

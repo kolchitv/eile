@@ -19,6 +19,7 @@ import { VisualVocabularyHub } from './components/VisualVocabularyHub';
 import { CustomTextReaderStudio } from './components/CustomTextReaderStudio';
 import { CEFRCompetenciesModal } from './components/CEFRCompetenciesModal';
 import { ArabicChantsModal } from './components/ArabicChantsModal';
+import { InstallAppTelegramModal } from './components/InstallAppTelegramModal';
 import { ReadingHierarchyTab } from './components/ReadingHierarchySection';
 import { ThematicCategoryId } from './data/thematicVocabularyData';
 import { Footer } from './components/Footer';
@@ -40,6 +41,8 @@ import {
   Timer,
   Target,
   Music,
+  Smartphone,
+  Send,
 } from 'lucide-react';
 
 export default function App() {
@@ -85,6 +88,27 @@ export default function App() {
   const [competenciesModalInitialLevel, setCompetenciesModalInitialLevel] = useState<'A1' | 'A2'>('A1');
   const [isChantsModalOpen, setIsChantsModalOpen] = useState(false);
   const [chantsModalInitialId, setChantsModalInitialId] = useState<string | undefined>(undefined);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+
+  // Auto-display install & Telegram modal gently after 2.5 seconds on first visit
+  useEffect(() => {
+    try {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      const dismissedTime = localStorage.getItem('arabfacile_pwa_dismissed');
+      
+      // If not installed standalone and not dismissed within last 48 hours
+      if (!isStandalone && (!dismissedTime || Date.now() - parseInt(dismissedTime, 10) > 48 * 60 * 60 * 1000)) {
+        const timer = setTimeout(() => {
+          setIsInstallModalOpen(true);
+        }, 2500);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const [textStudioInitialText, setTextStudioInitialText] = useState<string | undefined>(undefined);
   const [textStudioInitialHierarchyTab, setTextStudioInitialHierarchyTab] = useState<ReadingHierarchyTab | undefined>(undefined);
@@ -217,6 +241,7 @@ export default function App() {
         onOpenTextStudio={handleOpenTextStudio}
         onOpenCompetencies={handleOpenCompetencies}
         onOpenChants={handleOpenChants}
+        onOpenInstallApp={() => setIsInstallModalOpen(true)}
         onOpenSpeakingLab={() => {
           setActiveView('speakingLab');
           playSoundEffect('tap');
@@ -419,6 +444,20 @@ export default function App() {
               >
                 <MessageSquare className="w-3.5 h-3.5 text-amber-600" />
                 <span>{language === 'ar' ? 'المعلم الذكي' : language === 'fr' ? 'Tuteur IA' : 'AI Tutor'}</span>
+              </button>
+
+              {/* Install App & Telegram Button */}
+              <button
+                id="btn-hub-install-app"
+                onClick={() => {
+                  setIsInstallModalOpen(true);
+                  playSoundEffect('tap');
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 hover:brightness-110 active:scale-95 text-white shadow-sm shadow-fuchsia-500/20 cursor-pointer border border-white/20"
+                title="تثبيت التطبيق على الهاتف أو الحاسوب وقناة تلغرام arabiaeasy"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span className="font-arabic">{language === 'ar' ? 'تثبيت التطبيق وتلغرام 📲' : 'App & Telegram 📲'}</span>
               </button>
             </div>
           </div>
@@ -627,6 +666,14 @@ export default function App() {
         onOpenTextStudio={(verseText) => handleOpenTextStudio(verseText, 'sentences')}
       />
 
+      {/* PWA Installation & Telegram Channel Modal */}
+      <InstallAppTelegramModal
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+        appName="ArabFacile"
+        telegramUsername="arabiaeasy"
+      />
+
       {/* Footer ArabFacile.com */}
       <Footer
         language={language}
@@ -637,6 +684,7 @@ export default function App() {
         onOpenSpeedReading={handleOpenSpeedReading}
         onOpenCompetencies={() => handleOpenCompetencies(currentLevel === 'A2' ? 'A2' : 'A1')}
         onOpenChants={handleOpenChants}
+        onOpenInstallApp={() => setIsInstallModalOpen(true)}
         onOpenSpeakingLab={() => {
           setActiveView('speakingLab');
           window.scrollTo({ top: 0, behavior: 'smooth' });

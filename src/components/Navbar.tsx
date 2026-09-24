@@ -1,6 +1,6 @@
 import React from 'react';
 import { CEFRLevel, SupportedLanguage } from '../types';
-import { Flame, Zap, Gem, Award, Target, Music } from 'lucide-react';
+import { Flame, Zap, Gem, Award, Target, Music, Smartphone, Send } from 'lucide-react';
 import { ReadingHierarchyTab } from '../components/ReadingHierarchySection';
 
 interface NavbarProps {
@@ -25,6 +25,7 @@ interface NavbarProps {
   onOpenTextStudio?: (initialText?: string, hierarchyTab?: ReadingHierarchyTab) => void;
   onOpenCompetencies?: (level?: 'A1' | 'A2') => void;
   onOpenChants?: (chantId?: string) => void;
+  onOpenInstallApp?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -38,6 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCertificate,
   onOpenCompetencies,
   onOpenChants,
+  onOpenInstallApp,
 }) => {
   const levels: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -152,6 +154,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 EN 🇬🇧
               </button>
             </div>
+
+            {/* Install App & Telegram Button */}
+            {onOpenInstallApp && (
+              <button
+                id="btn-nav-install-app"
+                onClick={onOpenInstallApp}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 hover:brightness-110 active:scale-95 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black shadow-sm shadow-fuchsia-500/25 transition-all shrink-0 cursor-pointer border border-white/20"
+                title="تثبيت التطبيق على هاتفك أو حاسوبك وقناة تلغرام arabiaeasy"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline font-arabic">
+                  {language === 'ar' ? 'تثبيت التطبيق 📲' : 'Installer l\'App 📲'}
+                </span>
+                <span className="sm:hidden">📲</span>
+              </button>
+            )}
 
             {/* Certificate Button */}
             <button
