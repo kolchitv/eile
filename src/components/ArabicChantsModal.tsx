@@ -18,6 +18,8 @@ import {
   ExternalLink,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   X,
   Languages,
   Mic,
@@ -33,6 +35,9 @@ import {
   Eye,
   Sliders,
   Share2,
+  FileText,
+  LayoutList,
+  Columns,
 } from 'lucide-react';
 
 interface ArabicChantsModalProps {
@@ -61,27 +66,25 @@ function parseEmbedVideoUrl(url?: string): { type: 'youtube' | 'vimeo' | 'direct
     };
   }
 
-  // Vimeo matchers
-  const vimeoMatch = trimmed.match(
-    /vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)/
-  );
-  if (vimeoMatch && vimeoMatch[3]) {
+  // Vimeo
+  const vimeoMatch = trimmed.match(/(?:vimeo\.com\/)(\d+)/i);
+  if (vimeoMatch && vimeoMatch[1]) {
     return {
       type: 'vimeo',
-      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[3]}`,
+      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}`,
     };
   }
 
-  // Direct MP4/WebM video
-  if (trimmed.endsWith('.mp4') || trimmed.endsWith('.webm') || trimmed.endsWith('.ogg')) {
+  // Direct MP4 or WebM
+  if (trimmed.match(/\.(mp4|webm|ogg)$/i)) {
     return {
       type: 'direct',
       embedUrl: trimmed,
     };
   }
 
-  // Fallback if already iframe embed or https link
-  if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+  // Generic fallback if user already supplied an embed URL
+  if (trimmed.includes('embed') || trimmed.startsWith('https://')) {
     return {
       type: 'youtube',
       embedUrl: trimmed,
@@ -106,13 +109,16 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
   const [activeVerseIndex, setActiveVerseIndex] = useState<number | null>(null);
   const [speechRate, setSpeechRate] = useState<number>(0.9);
   const [showFrenchTranslation, setShowFrenchTranslation] = useState(true);
-  const [showTransliteration, setShowTransliteration] = useState(false);
 
   // Enlargement & Layout States
+  // 'grand_board': لوحة القصيدة الكبيرة الواسعة (Full wide poem canvas - default & fixes narrow area issue)
+  // 'cards': بطاقات الأبيات التفاعلية (Spacious cards view)
+  // 'with_video': مرافقة الفيديو مع الأبيات (Side-by-side or top video)
+  const [displayMode, setDisplayMode] = useState<'grand_board' | 'cards' | 'with_video'>('grand_board');
   const [isMaximized, setIsMaximized] = useState(false);
-  const [fontSizeLevel, setFontSizeLevel] = useState<'normal' | 'large' | 'xlarge'>('large');
-  const [showVideo, setShowVideo] = useState(true);
-  const [videoLayout, setVideoLayout] = useState<'split' | 'top'>('split');
+  const [fontSizeLevel, setFontSizeLevel] = useState<'normal' | 'large' | 'xlarge' | 'huge'>('large');
+  const [showVideo, setShowVideo] = useState(false);
+  const [isPedagogicalExpanded, setIsPedagogicalExpanded] = useState(false);
 
   // Custom Video URL state (per chant)
   const [customVideoUrls, setCustomVideoUrls] = useState<Record<string, string>>(() => {
@@ -245,6 +251,7 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
 
     setIsAddingVideoModalOpen(false);
     setShowVideo(true);
+    setDisplayMode('with_video');
     setVideoInputUrl('');
     playSoundEffect('correct');
   };
@@ -263,11 +270,14 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
     playSoundEffect('tap');
   };
 
-  // Quiz submission
-  const handleAnswerQuiz = (qId: string, optionIdx: number) => {
-    const updated = { ...selectedQuizAnswers, [qId]: optionIdx };
+  const handleAnswerQuiz = (questionId: string, optionIdx: number) => {
+    if (selectedQuizAnswers[questionId] !== undefined) return;
+
+    const updated = {
+      ...selectedQuizAnswers,
+      [questionId]: optionIdx,
+    };
     setSelectedQuizAnswers(updated);
-    playSoundEffect('tap');
 
     if (Object.keys(updated).length === currentChant.quiz.length) {
       let correct = 0;
@@ -290,11 +300,13 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
 
   // Font size classes for Arabic verses
   const verseTextClass =
-    fontSizeLevel === 'xlarge'
+    fontSizeLevel === 'huge'
       ? 'text-2xl sm:text-3xl lg:text-4xl leading-loose font-black'
+      : fontSizeLevel === 'xlarge'
+      ? 'text-xl sm:text-2xl lg:text-3xl leading-loose font-black'
       : fontSizeLevel === 'large'
-      ? 'text-xl sm:text-2xl lg:text-3xl leading-relaxed font-black'
-      : 'text-lg sm:text-xl lg:text-2xl leading-relaxed font-black';
+      ? 'text-lg sm:text-xl lg:text-2xl leading-relaxed font-black'
+      : 'text-base sm:text-lg lg:text-xl leading-relaxed font-black';
 
   return (
     <div
@@ -327,12 +339,9 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-400/30 text-emerald-200 font-mono text-xs font-black">
                   مستوى {currentChant.level}
                 </span>
-                {parsedVideo && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-200 border border-rose-400/40 text-xs font-bold flex items-center gap-1">
-                    <Video className="w-3 h-3 text-rose-300 animate-pulse" />
-                    <span>فيديو متاح 🎥</span>
-                  </span>
-                )}
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-400/30 text-xs font-bold flex items-center gap-1">
+                  <span>📜 منطقة نص واسعة</span>
+                </span>
               </div>
 
               <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
@@ -350,20 +359,16 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
               </p>
             </div>
 
-            {/* Quick Actions: Video Toggle, Font Size, Maximize, Print, Close */}
+            {/* Quick Actions: Maximize, Add Video, Print, Close */}
             <div className="flex items-center gap-1.5 sm:gap-2 self-end sm:self-center shrink-0">
-              {/* Toggle Video Visibility */}
+              {/* Maximize / Restore Window */}
               <button
-                onClick={() => setShowVideo(!showVideo)}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  showVideo
-                    ? 'bg-rose-600 border-rose-500 text-white shadow-sm'
-                    : 'bg-white/10 hover:bg-white/20 border-white/20 text-slate-200'
-                }`}
-                title={showVideo ? 'إخفاء شاشة الفيديو' : 'إظهار شاشة الفيديو المرافقة'}
+                onClick={() => setIsMaximized(!isMaximized)}
+                className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white rounded-xl border border-white/25 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-xs"
+                title={isMaximized ? 'استعادة الحجم الطبيعي' : 'تكبير الصفحة لملء الشاشة بالكامل'}
               >
-                {showVideo ? <Video className="w-3.5 h-3.5" /> : <VideoOff className="w-3.5 h-3.5" />}
-                <span className="hidden md:inline">{showVideo ? 'الفيديو مفعل' : 'عرض الفيديو'}</span>
+                {isMaximized ? <Minimize2 className="w-4 h-4 text-amber-300" /> : <Maximize2 className="w-4 h-4 text-amber-300" />}
+                <span className="hidden sm:inline">{isMaximized ? 'تصغير' : 'ملء الشاشة'}</span>
               </button>
 
               {/* Add/Edit Video Link */}
@@ -377,16 +382,7 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                 title="إضافة أو تعديل رابط الفيديو لهذه القصيدة"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">إضافة فيديو</span>
-              </button>
-
-              {/* Maximize / Restore Window */}
-              <button
-                onClick={() => setIsMaximized(!isMaximized)}
-                className="p-2 sm:p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 transition-all cursor-pointer"
-                title={isMaximized ? 'استعادة الحجم الطبيعي' : 'تكبير الصفحة لملء الشاشة'}
-              >
-                {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                <span className="hidden sm:inline">فيديو مخصص</span>
               </button>
 
               {/* Print */}
@@ -441,7 +437,7 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
         </div>
 
         {/* ========================================================================= */}
-        {/* TOOLBAR: Mode Tabs + Verse Font Size + Audio Controls                     */}
+        {/* TOOLBAR: Mode Tabs + Verse Layout Style + Font Size + Audio Controls      */}
         {/* ========================================================================= */}
         <div className="p-2.5 sm:p-3 bg-slate-100 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
           {/* Main Tabs */}
@@ -484,7 +480,7 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
               }`}
             >
               <BookOpen className="w-4 h-4 text-emerald-400" />
-              <span>معاني المفردات (Vocabulaire)</span>
+              <span>معاني المفردات</span>
               <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 rounded-full">
                 {currentChant.vocabulary.length}
               </span>
@@ -506,11 +502,67 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
           {/* Sing Controls & Font Size Adjuster */}
           {activeTab === 'sing' && (
             <div className="flex flex-wrap items-center gap-2">
+              {/* DISPLAY MODE SWITCHER (Solves Narrow Area / Scroll Cursor Issue) */}
+              <div className="flex items-center gap-1 bg-white p-1 rounded-2xl border border-amber-300 shadow-2xs text-xs font-bold">
+                <button
+                  onClick={() => {
+                    setDisplayMode('grand_board');
+                    setShowVideo(false);
+                    playSoundEffect('tap');
+                  }}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                    displayMode === 'grand_board'
+                      ? 'bg-amber-400 text-slate-950 font-black shadow-xs ring-1 ring-amber-500/30'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                  title="عرض النص كاملاً في لوحة كبيرة واسعة ومريحة جداً للقراءة"
+                >
+                  <FileText className="w-3.5 h-3.5 text-amber-800" />
+                  <span>لوحة القصيدة الكبيرة (عرض واسع) 📜</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setDisplayMode('cards');
+                    setShowVideo(false);
+                    playSoundEffect('tap');
+                  }}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                    displayMode === 'cards'
+                      ? 'bg-slate-900 text-white font-black shadow-xs'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                  title="عرض تفصيلي بيت بيت ببطاقات أنيقة"
+                >
+                  <LayoutList className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="hidden sm:inline">بطاقات الأبيات</span>
+                </button>
+
+                {parsedVideo && (
+                  <button
+                    onClick={() => {
+                      setDisplayMode('with_video');
+                      setShowVideo(true);
+                      playSoundEffect('tap');
+                    }}
+                    className={`px-2.5 sm:px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                      displayMode === 'with_video'
+                        ? 'bg-rose-600 text-white font-black shadow-xs'
+                        : 'text-slate-700 hover:bg-slate-100'
+                    }`}
+                    title="مشاهدة الفيديو بالتزامن مع قراءة النص"
+                  >
+                    <Video className="w-3.5 h-3.5 text-rose-300" />
+                    <span className="hidden md:inline">فيديو مع النص</span>
+                  </button>
+                )}
+              </div>
+
               {/* Font Size Adjuster */}
               <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-xl border border-slate-200 text-xs font-bold">
                 <span className="px-1.5 text-slate-500 text-[10px] flex items-center gap-0.5">
                   <Type className="w-3 h-3" />
-                  <span className="hidden sm:inline">حجم الخط:</span>
+                  <span className="hidden sm:inline">الخط:</span>
                 </span>
                 <button
                   onClick={() => setFontSizeLevel('normal')}
@@ -536,6 +588,15 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                 >
                   كبير جداً
                 </button>
+                <button
+                  onClick={() => setFontSizeLevel('huge')}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    fontSizeLevel === 'huge' ? 'bg-amber-200 font-black text-slate-950' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                  title="خط ضخم ومريح جداً للقراءة والشاشات الذكية"
+                >
+                  ضخم
+                </button>
               </div>
 
               {/* French Translation Toggle */}
@@ -546,9 +607,10 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                     ? 'bg-amber-100 border-amber-300 text-amber-950 font-black'
                     : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
+                title="إظهار أو إخفاء الترجمة الفرنسية للتركيز على النص العربي"
               >
                 <Languages className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">الترجمة الفرنسية</span>
+                <span className="hidden sm:inline">الترجمة</span>
               </button>
 
               {/* Speed Rate */}
@@ -561,7 +623,7 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                 }`}
                 title="تعديل سرعة الإنشاد للمبتدئين"
               >
-                <span>{speechRate === 0.7 ? '🐢 بطيء' : '⚡ سرعة عادية'}</span>
+                <span>{speechRate === 0.7 ? '🐢 بطيء' : '⚡ عادي'}</span>
               </button>
 
               {/* Play All Button */}
@@ -581,7 +643,7 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                 ) : (
                   <>
                     <Play className="w-4 h-4 fill-white" />
-                    <span>إنشاد القصيدة كاملة 🎶</span>
+                    <span>إنشاد كامل 🎶</span>
                   </>
                 )}
               </button>
@@ -594,98 +656,214 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
         {/* ========================================================================= */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 bg-slate-50/70">
           
-          {/* TAB 1: VERSES & SING ALONG (With Responsive Video Side-by-Side) */}
+          {/* TAB 1: VERSES & SING ALONG */}
           {activeTab === 'sing' && (
             <div className="space-y-4 max-w-6xl mx-auto">
-              {/* Pedagogical Banner */}
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-3.5 sm:p-4 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs" dir="rtl">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-black text-amber-900">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
+              
+              {/* Collapsible Pedagogical Banner (Saves huge vertical space) */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200/90 shadow-2xs overflow-hidden" dir="rtl">
+                <div className="p-3 sm:p-3.5 flex items-center justify-between gap-2">
+                  <button
+                    onClick={() => setIsPedagogicalExpanded(!isPedagogicalExpanded)}
+                    className="flex items-center gap-2 text-xs sm:text-sm font-black text-amber-950 hover:text-amber-800 cursor-pointer text-right flex-1"
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>الأهداف التعليمية والمحور (Objectifs Pédagogiques EILE) :</span>
+                    <span className="text-[11px] font-sans font-bold text-slate-600 bg-amber-100/80 px-2 py-0.5 rounded-full hidden sm:inline">
+                      {currentChant.themeAr}
+                    </span>
+                    <span className="text-amber-700 text-xs font-bold mr-auto">
+                      {isPedagogicalExpanded ? 'إخفاء ▲' : 'عرض الأهداف ▼'}
+                    </span>
+                  </button>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {onOpenTextStudio && (
+                      <button
+                        onClick={() => {
+                          onClose();
+                          onOpenTextStudio(currentChant.verses.map((v) => v.lineAr).join('\n'));
+                        }}
+                        className="px-3 py-1 bg-white hover:bg-amber-100 text-slate-800 border border-amber-300 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                      >
+                        <span>🎙️</span>
+                        <span className="hidden sm:inline">استوديو القراءة والتحليل</span>
+                        <span className="sm:hidden">الاستوديو</span>
+                      </button>
+                    )}
                   </div>
-                  <p className="text-xs sm:text-sm font-sans text-slate-700">
-                    {currentChant.pedagogicalObjectivesFr.join(' • ')}
-                  </p>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  {onOpenTextStudio && (
-                    <button
-                      onClick={() => {
-                        onClose();
-                        onOpenTextStudio(currentChant.verses.map((v) => v.lineAr).join('\n'));
-                      }}
-                      className="px-3 py-1.5 bg-white hover:bg-amber-100 text-slate-800 border border-amber-300 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
-                    >
-                      <span>🎙️</span>
-                      <span>استوديو القراءة والتحليل</span>
-                    </button>
-                  )}
-                </div>
+                {isPedagogicalExpanded && (
+                  <div className="p-3.5 pt-0 border-t border-amber-200/40 text-xs sm:text-sm font-sans text-slate-700 space-y-1">
+                    {currentChant.pedagogicalObjectivesFr.map((obj, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-amber-600 font-bold">•</span>
+                        <span>{obj}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Main Content Layout: Side-by-Side Video + Verses OR Full Width Verses */}
-              <div className={`grid grid-cols-1 ${showVideo && parsedVideo ? 'lg:grid-cols-12' : ''} gap-5 items-start`}>
-                
-                {/* VIDEO COLUMN (Left side on desktop, or above on mobile) */}
-                {showVideo && parsedVideo && (
-                  <div className="lg:col-span-5 space-y-3 order-1 lg:order-1 lg:sticky lg:top-0">
-                    <div className="bg-white rounded-3xl p-3.5 border-2 border-amber-300/80 shadow-md space-y-2.5">
-                      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2" dir="rtl">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                          <span className="font-bold text-xs text-slate-800 font-arabic">
-                            {currentChant.videoTitle || 'فيديو الأنشودة التعليمي'}
-                          </span>
-                        </div>
+              {/* ========================================================================= */}
+              {/* MODE 1: GRAND POEM BOARD (لوحة القصيدة الكبيرة الواسعة) - THE PRIMARY VIEW */}
+              {/* ========================================================================= */}
+              {displayMode === 'grand_board' && (
+                <div className="w-full max-w-5xl mx-auto space-y-4" dir="rtl">
+                  {/* Grand Parchment Canvas */}
+                  <div className="bg-gradient-to-b from-amber-50/80 via-white to-amber-50/60 rounded-3xl p-5 sm:p-8 md:p-10 border-2 border-amber-300/90 shadow-xl relative overflow-hidden">
+                    {/* Decorative Corner Ornaments */}
+                    <div className="absolute top-3 right-4 text-amber-400/40 select-none text-2xl font-serif">❖</div>
+                    <div className="absolute top-3 left-4 text-amber-400/40 select-none text-2xl font-serif">❖</div>
+                    <div className="absolute bottom-3 right-4 text-amber-400/40 select-none text-2xl font-serif">❖</div>
+                    <div className="absolute bottom-3 left-4 text-amber-400/40 select-none text-2xl font-serif">❖</div>
+
+                    {/* Grand Title Banner */}
+                    <div className="text-center pb-5 mb-6 border-b-2 border-amber-200/80 space-y-2">
+                      <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black shadow-2xs">
+                        <span>{currentChant.icon}</span>
+                        <span>{currentChant.unitNameAr}</span>
+                        <span>•</span>
+                        <span>{currentChant.themeAr}</span>
+                      </div>
+                      <h3 className="font-arabic font-black text-3xl sm:text-4xl md:text-5xl text-emerald-950 tracking-wide mt-1.5">
+                        {currentChant.titleAr}
+                      </h3>
+                      <p className="font-sans text-xs sm:text-sm text-slate-600 font-medium italic" dir="ltr">
+                        {currentChant.titleFr} — {currentChant.summaryFr}
+                      </p>
+                    </div>
+
+                    {/* The Full Poem Verses in Spacious Two-Hemistich Poetic Format */}
+                    <div className="space-y-3 sm:space-y-4">
+                      {currentChant.verses.map((verse, idx) => {
+                        const isActive = activeVerseIndex === idx;
+
+                        return (
+                          <div
+                            key={verse.id}
+                            onClick={() => handlePlayVerse(verse, idx)}
+                            className={`group p-3 sm:p-4 md:p-5 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                              isActive
+                                ? 'bg-amber-100/95 border-amber-400 shadow-md ring-2 ring-amber-400/40 scale-[1.01]'
+                                : 'bg-white/90 border-amber-200/50 hover:bg-amber-50/70 hover:border-amber-300 shadow-2xs'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-3 sm:gap-6">
+                              {/* Verse Number & Audio Trigger */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span
+                                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full font-mono text-xs font-black flex items-center justify-center transition-colors border ${
+                                    isActive
+                                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-xs'
+                                      : 'bg-amber-100/80 text-amber-950 border-amber-200 group-hover:bg-amber-200'
+                                  }`}
+                                >
+                                  {idx + 1}
+                                </span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePlayVerse(verse, idx);
+                                  }}
+                                  className={`p-2 rounded-xl transition-all cursor-pointer ${
+                                    isActive
+                                      ? 'bg-emerald-600 text-white shadow-xs'
+                                      : 'bg-slate-100 group-hover:bg-emerald-100 text-slate-700 group-hover:text-emerald-900'
+                                  }`}
+                                  title="الاستماع لهذا البيت"
+                                >
+                                  <Volume2 className="w-4 h-4" />
+                                </button>
+                              </div>
+
+                              {/* Symmetrical Hemistichs: الصدر والعجز */}
+                              <div className="flex-1">
+                                <div
+                                  className={`grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-6 items-center text-center font-arabic ${verseTextClass} text-slate-900`}
+                                >
+                                  {/* First Hemistich (صدر البيت) */}
+                                  <div className="text-emerald-950 md:text-left md:pr-4 font-black">
+                                    <span className="relative inline-block px-2.5 py-1 rounded-xl group-hover:bg-amber-100/50 transition-colors">
+                                      {verse.firstHalfAr}
+                                    </span>
+                                  </div>
+
+                                  {/* Second Hemistich (عجز البيت) */}
+                                  <div className="text-slate-900 md:text-right md:pl-4 font-black border-t md:border-t-0 md:border-r border-amber-200/60 pt-1 md:pt-0">
+                                    <span className="relative inline-block px-2.5 py-1 rounded-xl group-hover:bg-amber-100/50 transition-colors">
+                                      {verse.secondHalfAr}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Decorative Rhyme Marker */}
+                              <div className="hidden sm:flex items-center justify-center text-amber-500 font-bold shrink-0 text-sm select-none">
+                                ✦
+                              </div>
+                            </div>
+
+                            {/* French Translation (if toggled on) */}
+                            {showFrenchTranslation && (
+                              <div
+                                className="mt-2.5 pt-2 border-t border-amber-200/40 flex flex-wrap items-center justify-between text-xs font-sans text-slate-600 pr-9 sm:pr-14"
+                                dir="ltr"
+                              >
+                                <p className="italic font-medium">
+                                  🇫🇷 {verse.translationFr}
+                                </p>
+                                {verse.translitFr && (
+                                  <span className="text-[11px] font-mono text-amber-800/90 hidden md:inline">
+                                    🗣️ {verse.translitFr}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Bottom Board Controls */}
+                    <div className="mt-8 pt-6 border-t-2 border-amber-200/70 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => {
-                            setVideoInputUrl(customVideoUrls[currentChant.id] || currentChant.defaultVideoUrl || '');
-                            setVideoInputError('');
-                            setIsAddingVideoModalOpen(true);
-                          }}
-                          className="text-[11px] font-bold text-amber-800 hover:text-amber-950 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 hover:bg-amber-100 cursor-pointer"
+                          onClick={handleTogglePlayAll}
+                          className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 shadow-md transition-all cursor-pointer ${
+                            isPlayingAll
+                              ? 'bg-rose-600 text-white animate-pulse'
+                              : 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white hover:brightness-110'
+                          }`}
                         >
-                          <Edit3 className="w-3 h-3" />
-                          <span>تغيير الفيديو</span>
+                          {isPlayingAll ? (
+                            <>
+                              <Pause className="w-4 h-4" />
+                              <span>إيقاف الإنشاد</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4 fill-white" />
+                              <span>إنشاد القصيدة كاملة ومتابعة الأبيات 🎶</span>
+                            </>
+                          )}
                         </button>
                       </div>
 
-                      {/* Video Player Frame */}
-                      <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-950 shadow-inner border border-slate-200">
-                        {parsedVideo.type === 'direct' ? (
-                          <video
-                            controls
-                            className="w-full h-full object-cover"
-                            src={parsedVideo.embedUrl}
-                          />
-                        ) : (
-                          <iframe
-                            className="w-full h-full border-0"
-                            src={parsedVideo.embedUrl}
-                            title={currentChant.titleAr}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1" dir="rtl">
-                        <span>💡 استمع للأنشودة وردد الأبيات المقابلة بالتزامن</span>
-                        <button
-                          onClick={() => setActiveTab('video')}
-                          className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>عرض مسرحي ➔</span>
-                        </button>
+                      <div className="flex items-center gap-3 text-xs text-slate-500 font-arabic">
+                        <span>💡 اضغط على أي بيت للاستماع إليه فوراً وتكراره دون الحاجة لتحريك المؤشر</span>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* VERSES COLUMN */}
-                <div className={`${showVideo && parsedVideo ? 'lg:col-span-7' : 'max-w-4xl mx-auto w-full'} space-y-3.5 order-2 lg:order-2`} dir="rtl">
+              {/* ========================================================================= */}
+              {/* MODE 2: INTERACTIVE VERSE CARDS (بطاقات الأبيات التفاعلية)                  */}
+              {/* ========================================================================= */}
+              {displayMode === 'cards' && (
+                <div className="max-w-5xl mx-auto w-full space-y-3.5" dir="rtl">
                   {currentChant.verses.map((verse, idx) => {
                     const isActive = activeVerseIndex === idx;
 
@@ -752,8 +930,92 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                     );
                   })}
                 </div>
+              )}
 
-              </div>
+              {/* ========================================================================= */}
+              {/* MODE 3: VIDEO COMPANION (فيديو مدمج مع الأبيات)                            */}
+              {/* ========================================================================= */}
+              {displayMode === 'with_video' && parsedVideo && (
+                <div className="space-y-4 max-w-6xl mx-auto">
+                  {/* Video Top Banner */}
+                  <div className="bg-white rounded-3xl p-4 border-2 border-amber-300 shadow-md space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2" dir="rtl">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                        <span className="font-bold text-sm text-slate-800 font-arabic">
+                          {currentChant.videoTitle || 'فيديو الأنشودة التعليمي'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setDisplayMode('grand_board')}
+                          className="text-xs font-bold text-emerald-800 hover:text-emerald-950 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 cursor-pointer"
+                        >
+                          📜 العودة للوحة النص الواسعة
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="relative w-full max-w-3xl mx-auto aspect-video rounded-2xl overflow-hidden bg-slate-950 shadow-inner border border-slate-200">
+                      {parsedVideo.type === 'direct' ? (
+                        <video
+                          controls
+                          className="w-full h-full object-cover"
+                          src={parsedVideo.embedUrl}
+                        />
+                      ) : (
+                        <iframe
+                          className="w-full h-full border-0"
+                          src={parsedVideo.embedUrl}
+                          title={currentChant.titleAr}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Verses List Below Video */}
+                  <div className="space-y-3" dir="rtl">
+                    {currentChant.verses.map((verse, idx) => {
+                      const isActive = activeVerseIndex === idx;
+                      return (
+                        <div
+                          key={verse.id}
+                          onClick={() => handlePlayVerse(verse, idx)}
+                          className={`p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                            isActive
+                              ? 'bg-amber-100 border-amber-400 shadow-md'
+                              : 'bg-white border-slate-200 hover:border-amber-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="w-7 h-7 rounded-full bg-slate-100 text-slate-800 font-mono text-xs font-black flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePlayVerse(verse, idx);
+                              }}
+                              className="p-1.5 bg-slate-100 hover:bg-emerald-100 rounded-lg"
+                            >
+                              <Volume2 className="w-4 h-4 text-emerald-700" />
+                            </button>
+                          </div>
+
+                          <div className={`flex-1 text-center font-arabic ${verseTextClass} text-slate-900`}>
+                            <span className="text-emerald-950 font-black">{verse.firstHalfAr}</span>
+                            <span className="text-amber-500 mx-2">✦</span>
+                            <span className="text-slate-900 font-black">{verse.secondHalfAr}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
@@ -821,22 +1083,37 @@ export const ArabicChantsModal: React.FC<ArabicChantsModalProps> = ({
                   </div>
                 )}
 
-                {/* Verses Scroller under video for sing along */}
+                {/* Verses Scroller under video - EXPANDED to be spacious and legible */}
                 <div className="pt-3 border-t border-slate-200 space-y-2">
                   <div className="flex items-center justify-between text-xs font-black text-slate-700">
-                    <span>كلمات الأنشودة للمتابعة (Paroles du chant) :</span>
+                    <span>كلمات الأنشودة الكاملة للمتابعة (Paroles du chant) :</span>
                     <button
-                      onClick={() => setActiveTab('sing')}
-                      className="text-emerald-700 hover:text-emerald-800 font-bold"
+                      onClick={() => {
+                        setActiveTab('sing');
+                        setDisplayMode('grand_board');
+                      }}
+                      className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1"
                     >
-                      العودة للأبيات المفصلة ➔
+                      <span>عرض لوحة القصيدة الكبيرة ➔</span>
                     </button>
                   </div>
-                  <div className="max-h-48 overflow-y-auto space-y-1.5 p-2 bg-slate-50 rounded-2xl border border-slate-200">
+                  <div className="max-h-80 overflow-y-auto space-y-2 p-3 bg-slate-50 rounded-2xl border border-slate-200">
                     {currentChant.verses.map((v, i) => (
-                      <div key={v.id} className="flex items-center justify-between text-sm py-1 px-2 hover:bg-white rounded-lg font-arabic font-bold text-slate-800">
-                        <span>{i + 1}. {v.lineAr}</span>
-                        <span className="text-xs font-sans text-slate-500 font-normal italic" dir="ltr">{v.translationFr}</span>
+                      <div
+                        key={v.id}
+                        onClick={() => handlePlayVerse(v, i)}
+                        className="p-2 hover:bg-white rounded-xl font-arabic font-bold text-slate-800 border border-transparent hover:border-amber-200 cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-center justify-between text-base sm:text-lg">
+                          <span className="text-emerald-950">{i + 1}. {v.firstHalfAr}</span>
+                          <span className="text-amber-500">✦</span>
+                          <span className="text-slate-900">{v.secondHalfAr}</span>
+                        </div>
+                        {v.translationFr && (
+                          <p className="text-xs font-sans text-slate-500 font-normal italic mt-1" dir="ltr">
+                            {v.translationFr}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -5,6 +5,7 @@ import { THEMATIC_CATEGORIES, ThematicCategoryId } from '../data/thematicVocabul
 import { CEFR_COMPETENCIES_DATA } from '../data/competenciesData';
 import { ARABIC_CHANTS_DATA } from '../data/chantsData';
 import { speakArabic, playSoundEffect } from '../utils/audio';
+import { DailyStudyGoal } from './DailyStudyGoal';
 import {
   Sparkles,
   CheckCircle2,
@@ -40,6 +41,8 @@ interface LevelRoadmapProps {
   onOpenTextStudio?: () => void;
   onOpenCompetencies?: (level?: 'A1' | 'A2') => void;
   onOpenChants?: (chantId?: string) => void;
+  onEarnXp?: (amount: number) => void;
+  onEarnGems?: (amount: number) => void;
 }
 
 export const LevelRoadmap: React.FC<LevelRoadmapProps> = ({
@@ -54,6 +57,8 @@ export const LevelRoadmap: React.FC<LevelRoadmapProps> = ({
   onOpenTextStudio,
   onOpenCompetencies,
   onOpenChants,
+  onEarnXp,
+  onEarnGems,
 }) => {
   const [acquiredMap, setAcquiredMap] = useState<Record<string, boolean>>({});
 
@@ -173,6 +178,13 @@ export const LevelRoadmap: React.FC<LevelRoadmapProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Daily Study Goal Component */}
+      <DailyStudyGoal
+        language={language}
+        onEarnXp={onEarnXp}
+        onEarnGems={onEarnGems}
+      />
 
       {/* Quick Interactive Mini-Features */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

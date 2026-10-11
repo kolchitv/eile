@@ -102,7 +102,7 @@ export default function App() {
       if (!isStandalone && (!dismissedTime || Date.now() - parseInt(dismissedTime, 10) > 48 * 60 * 60 * 1000)) {
         const timer = setTimeout(() => {
           setIsInstallModalOpen(true);
-        }, 2500);
+        }, 6000);
         return () => clearTimeout(timer);
       }
     } catch {
@@ -446,6 +446,30 @@ export default function App() {
                 <span>{language === 'ar' ? 'المعلم الذكي' : language === 'fr' ? 'Tuteur IA' : 'AI Tutor'}</span>
               </button>
 
+              {/* Daily Study Goal Quick Hub Button */}
+              <button
+                id="btn-hub-study-goal"
+                onClick={() => {
+                  if (activeView !== 'roadmap') {
+                    setActiveView('roadmap');
+                  }
+                  playSoundEffect('tap');
+                  setTimeout(() => {
+                    const el = document.getElementById('daily-study-goal-widget');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      el.classList.add('ring-4', 'ring-amber-400');
+                      setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 1500);
+                    }
+                  }, 120);
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs cursor-pointer active:scale-95"
+                title={language === 'ar' ? 'هدف التعلم اليومي وجلسة التركيز' : 'Objectif d\'étude quotidien'}
+              >
+                <Target className="w-3.5 h-3.5 text-emerald-700" />
+                <span className="font-arabic">{language === 'ar' ? 'هدف اليوم ⏱️' : language === 'fr' ? 'Objectif ⏱️' : 'Daily Goal ⏱️'}</span>
+              </button>
+
               {/* Install App & Telegram Button */}
               <button
                 id="btn-hub-install-app"
@@ -481,6 +505,12 @@ export default function App() {
               onOpenTextStudio={handleOpenTextStudio}
               onOpenCompetencies={handleOpenCompetencies}
               onOpenChants={handleOpenChants}
+              onEarnXp={(amt) => {
+                setXp((x) => x + amt);
+              }}
+              onEarnGems={(amt) => {
+                setGems((g) => g + amt);
+              }}
             />
 
             {/* Cultural wisdom and dialect comparisons widget */}

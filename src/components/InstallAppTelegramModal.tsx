@@ -11,10 +11,10 @@ import {
   Share2,
   PlusSquare,
   CheckCircle2,
-  Sparkles,
   ExternalLink,
-  ChevronDown,
   Info,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface InstallAppTelegramModalProps {
@@ -43,21 +43,19 @@ export const InstallAppTelegramModal: React.FC<InstallAppTelegramModalProps> = (
       if (outcome === 'accepted') {
         setInstallSuccess(true);
         playSoundEffect('correct');
-        confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
         setTimeout(() => {
           onClose();
-        }, 2500);
+        }, 2000);
         return;
       }
     }
-
-    // If native prompt wasn't triggered (e.g. iOS or manual browser requirement), reveal the guided steps
+    // If native prompt wasn't available, reveal the concise guided steps
     setShowManualGuide(true);
   };
 
   const handleOpenTelegram = () => {
     playSoundEffect('tap');
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
     window.open(`https://t.me/${telegramUsername}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -73,197 +71,139 @@ export const InstallAppTelegramModal: React.FC<InstallAppTelegramModalProps> = (
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-slate-950/45 backdrop-blur-[2px] transition-all animate-fade-in"
       role="dialog"
       aria-modal="true"
+      onClick={handleDismissLater}
     >
+      {/* Compact Card with Stop Propagation on Click */}
       <div
-        className="bg-white relative w-full max-w-md rounded-[32px] shadow-2xl border border-slate-100 p-6 sm:p-7 overflow-hidden text-center transition-all animate-scale-up"
+        className="bg-white/98 relative w-full max-w-[360px] rounded-3xl shadow-2xl border border-amber-200/80 p-4 sm:p-5 overflow-hidden text-center transition-all animate-scale-up"
         dir="rtl"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button (top-left / top-right depending on visual) */}
+        {/* Close Button */}
         <button
           onClick={handleDismissLater}
-          className="absolute top-4 left-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+          className="absolute top-3 left-3 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
           aria-label="إغلاق"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-purple-100/60 via-pink-50/30 to-transparent -z-10 pointer-events-none" />
+        <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-violet-100/50 via-rose-50/20 to-transparent -z-10 pointer-events-none" />
 
-        {/* ========================================================================= */}
-        {/* Centered App Icon with Radiant Gradient & Glow (Matches User Screenshot)  */}
-        {/* ========================================================================= */}
-        <div className="flex justify-center mb-4 pt-1">
-          <div className="relative group">
-            {/* Glowing Backdrop */}
-            <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-rose-500 opacity-60 blur-lg group-hover:opacity-80 transition duration-300" />
-            
-            {/* Squircle App Badge */}
-            <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-[26px] bg-gradient-to-br from-violet-600 via-fuchsia-500 to-rose-500 flex flex-col items-center justify-center text-white shadow-xl shadow-fuchsia-500/30 border-2 border-white/40">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center border border-white/30">
-                <Smartphone className="w-6 h-6 text-white drop-shadow-sm" />
-              </div>
-              <span className="font-arabic font-black text-[10px] text-amber-200 tracking-wider mt-1 drop-shadow-xs">
-                {appName}
-              </span>
-            </div>
+        {/* Compact Header: Small Badge + Title */}
+        <div className="flex items-center gap-2.5 text-right mb-2.5 pr-1">
+          {/* Compact App Icon */}
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-rose-500 flex items-center justify-center text-white shadow-md shadow-fuchsia-500/20 shrink-0 border border-white/50">
+            <Smartphone className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-arabic font-black text-slate-900 text-sm sm:text-base leading-snug">
+              تثبيت {appName} وقناة تلغرام
+            </h3>
+            <p className="text-[11px] text-slate-500 font-sans leading-tight">
+              وصول فوري وخفيف لدروس العربية بلمسة واحدة
+            </p>
           </div>
         </div>
 
-        {/* ========================================================================= */}
-        {/* Title & Subtitle                                                          */}
-        {/* ========================================================================= */}
-        <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-arabic tracking-tight mb-2">
-          ثبّت {appName} على شاشتك الرئيسية
-        </h2>
-
-        <p className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed mb-5 max-w-sm mx-auto">
-          وصول أسرع لدروس وتمارين اللغة العربية والأناشيد بضغطة واحدة، من غير متصفح ومن غير تحميل من أي متجر.
-        </p>
-
         {/* Success Alert if just installed */}
         {installSuccess && (
-          <div className="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-center gap-2 animate-bounce">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>تم تثبيت التطبيق بنجاح على جهازك! مرحباً بك.</span>
+          <div className="mb-2.5 p-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>تم تثبيت التطبيق بنجاح! 🎉</span>
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* Primary Action Button: Install Now (Gradient Pill/Rounded)                */}
-        {/* ========================================================================= */}
-        {!isInstalled && (
+        {/* Install Action Button */}
+        {!isInstalled ? (
           <button
             onClick={handleInstallClick}
-            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 hover:from-violet-700 hover:via-fuchsia-700 hover:to-rose-600 text-white font-black text-base sm:text-lg font-arabic shadow-lg shadow-fuchsia-500/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mb-3"
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 hover:brightness-105 active:scale-[0.98] text-white font-black text-xs sm:text-sm font-arabic shadow-md shadow-fuchsia-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer mb-2"
           >
-            <Download className="w-5 h-5" />
-            <span>ثبّت الآن</span>
+            <Download className="w-4 h-4" />
+            <span>تثبيت التطبيق على جهازك 📥</span>
+          </button>
+        ) : (
+          <div className="w-full py-2 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs font-arabic flex items-center justify-center gap-1.5 mb-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>التطبيق مثبت على جهازك ✨</span>
+          </div>
+        )}
+
+        {/* Toggle Manual Guide Accordion (Compact) */}
+        {!isInstalled && (
+          <button
+            onClick={() => setShowManualGuide((prev) => !prev)}
+            className="text-[11px] text-violet-700 hover:text-violet-900 font-bold flex items-center justify-center gap-1 mx-auto mb-2.5 cursor-pointer transition-colors"
+          >
+            <Info className="w-3 h-3" />
+            <span>{showManualGuide ? 'إخفاء طريقة التثبيت' : 'كيفية التثبيت اليدوي؟'}</span>
+            {showManualGuide ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
         )}
 
-        {isInstalled && (
-          <div className="w-full py-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-black text-sm font-arabic flex items-center justify-center gap-2 mb-3">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>التطبيق مثبت بالفعل على جهازك 🎉</span>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* Guided Step-by-Step Instructions (For iOS Safari, Android, or PC/Mac)     */}
-        {/* ========================================================================= */}
+        {/* Guided Step-by-Step Instructions (Only shown if toggled) */}
         {showManualGuide && (
-          <div className="mb-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-right space-y-2 text-xs text-slate-700 font-sans animate-fade-in">
-            <div className="flex items-center justify-between text-slate-900 font-bold font-arabic pb-1 border-b border-slate-200">
-              <span className="flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-violet-600" />
-                <span>طريقة التثبيت السريعة:</span>
-              </span>
-              <span className="text-[10px] text-slate-500">
-                {isIOS ? 'أجهزة iPhone / iPad' : isDesktop ? 'الكمبيوتر (Chrome/Edge)' : 'أجهزة Android'}
-              </span>
-            </div>
-
+          <div className="mb-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-right space-y-1.5 text-[11px] text-slate-700 font-sans animate-fade-in">
+            <span className="font-bold text-[10px] text-violet-800 block">
+              {isIOS ? 'أجهزة iPhone / iPad (Safari):' : isDesktop ? 'الكمبيوتر (Chrome/Edge):' : 'أجهزة Android:'}
+            </span>
             {isIOS ? (
-              <div className="space-y-1.5 pt-1 text-[11px] leading-relaxed">
-                <p className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-800 font-bold flex items-center justify-center shrink-0">1</span>
-                  <span>اضغط على زر المشاركة <strong>(Partager / Share)</strong> <Share2 className="w-3.5 h-3.5 inline text-sky-600" /> في أسفل متصفح Safari.</span>
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-800 font-bold flex items-center justify-center shrink-0">2</span>
-                  <span>مرر للأسفل واختر <strong>«إضافة إلى الشاشة الرئيسية»</strong> (Sur l’écran d’accueil) <PlusSquare className="w-3.5 h-3.5 inline text-emerald-600" />.</span>
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-800 font-bold flex items-center justify-center shrink-0">3</span>
-                  <span>اضغط على <strong>«إضافة»</strong> (Ajouter) لتثبيت أيقونة التطبيق فوراً.</span>
-                </p>
-              </div>
+              <p className="leading-relaxed text-[10px]">
+                اضغط زر المشاركة <Share2 className="w-3 h-3 inline text-sky-600" /> ثم اختر <strong>«إضافة إلى الشاشة الرئيسية»</strong> <PlusSquare className="w-3 h-3 inline text-emerald-600" /> ثم «إضافة».
+              </p>
             ) : isDesktop ? (
-              <div className="space-y-1.5 pt-1 text-[11px] leading-relaxed">
-                <p className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-800 font-bold flex items-center justify-center shrink-0">1</span>
-                  <span>اضغط على أيقونة التثبيت <Monitor className="w-3.5 h-3.5 inline text-violet-600" /> الموجودة في شريط العنوان (URL bar) أعلى المتصفح.</span>
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-800 font-bold flex items-center justify-center shrink-0">2</span>
-                  <span>أو افتح قائمة الخيارات (⋮) ثم اختر <strong>«تثبيت ArabFacile»</strong>.</span>
-                </p>
-              </div>
+              <p className="leading-relaxed text-[10px]">
+                اضغط على أيقونة التثبيت <Monitor className="w-3 h-3 inline text-violet-600" /> بشريط المتصفح أو قائمة (⋮) ثم <strong>«تثبيت ArabFacile»</strong>.
+              </p>
             ) : (
-              <div className="space-y-1.5 pt-1 text-[11px] leading-relaxed">
-                <p className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-800 font-bold flex items-center justify-center shrink-0">1</span>
-                  <span>اضغط على زر القائمة (⋮) أعلى يمين أو يسار المتصفح.</span>
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-800 font-bold flex items-center justify-center shrink-0">2</span>
-                  <span>اختر <strong>«تثبيت التطبيق»</strong> أو <strong>«إضافة إلى الشاشة الرئيسية»</strong>.</span>
-                </p>
-              </div>
+              <p className="leading-relaxed text-[10px]">
+                اضغط على قائمة المتصفح (⋮) ثم اختر <strong>«تثبيت التطبيق»</strong> أو «إضافة للشاشة الرئيسية».
+              </p>
             )}
           </div>
         )}
 
-        {/* Toggle manual guide link if not already shown */}
-        {!showManualGuide && !isInstalled && (
-          <button
-            onClick={() => setShowManualGuide(true)}
-            className="text-[11px] text-slate-500 hover:text-violet-700 underline font-medium mb-3 cursor-pointer block mx-auto"
-          >
-            كيف أقوم بتثبيت التطبيق يدوياً؟
-          </button>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TELEGRAM CHANNEL SECTION: arabiaeasy (Explicitly requested by user)       */}
-        {/* ========================================================================= */}
-        <div className="mt-4 pt-4 border-t border-slate-100">
-          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-50 via-sky-100/50 to-blue-50 border border-sky-200 text-right space-y-2.5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-xs">
-                  <Send className="w-4 h-4 fill-white -rotate-12 translate-x-0.5" />
-                </div>
-                <div>
-                  <h4 className="font-arabic font-black text-sm text-sky-950">
-                    قناة تلغرام التعليمية الرسمية
-                  </h4>
-                  <p className="text-[10px] font-mono text-sky-700 font-bold" dir="ltr">
-                    @{telegramUsername}
-                  </p>
-                </div>
+        {/* Telegram Channel Section (Ultra-Compact) */}
+        <div className="p-2.5 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50/70 border border-sky-200 text-right space-y-2 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-sky-500 text-white flex items-center justify-center shadow-2xs shrink-0">
+                <Send className="w-3.5 h-3.5 fill-white -rotate-12 translate-x-0.5" />
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 text-[10px] font-black font-sans">
-                مجانية 🎁
-              </span>
+              <div className="leading-tight">
+                <h4 className="font-arabic font-black text-xs text-sky-950">
+                  قناة تلغرام التعليمية
+                </h4>
+                <span className="text-[10px] font-mono text-sky-700 font-bold" dir="ltr">
+                  @{telegramUsername}
+                </span>
+              </div>
             </div>
-
-            <p className="text-[11px] text-slate-600 font-sans leading-relaxed">
-              انضم إلينا لمتابعة الدروس الحصرية، تحميل أوراق العمل وملفات PDF، والتواصل المباشر مع الأستاذ سعيد.
-            </p>
-
-            <button
-              onClick={handleOpenTelegram}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-arabic font-extrabold text-xs shadow-md shadow-sky-500/20 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Send className="w-3.5 h-3.5 fill-white -rotate-12" />
-              <span>الانضمام لقناة تلغرام @{telegramUsername}</span>
-              <ExternalLink className="w-3 h-3 text-sky-200 mr-0.5" />
-            </button>
+            <span className="px-1.5 py-0.5 rounded-md bg-sky-200/80 text-sky-900 text-[9px] font-black">
+              مجانية 🎁
+            </span>
           </div>
+
+          <button
+            onClick={handleOpenTelegram}
+            className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:brightness-105 active:scale-[0.98] text-white font-arabic font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Send className="w-3 h-3 fill-white -rotate-12" />
+            <span>الانضمام لقناة @{telegramUsername}</span>
+            <ExternalLink className="w-2.5 h-2.5 text-sky-200 mr-0.5" />
+          </button>
         </div>
 
-        {/* ========================================================================= */}
-        {/* Dismissal Link: "ربما لاحقاً" (Matches User Screenshot)                   */}
-        {/* ========================================================================= */}
-        <div className="mt-4">
+        {/* Dismiss Link */}
+        <div className="mt-2.5">
           <button
             onClick={handleDismissLater}
-            className="text-xs sm:text-sm font-arabic font-bold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer py-1"
+            className="text-xs font-arabic font-medium text-slate-400 hover:text-slate-600 transition-colors cursor-pointer py-0.5"
           >
             ربما لاحقاً
           </button>

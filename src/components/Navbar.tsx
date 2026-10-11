@@ -128,6 +128,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Gem className="w-3.5 h-3.5 text-emerald-600 fill-emerald-500" />
                 <span>{gems}</span>
               </div>
+              <span className="text-amber-300 font-light">|</span>
+              <button
+                id="btn-nav-daily-goal"
+                onClick={() => {
+                  const el = document.getElementById('daily-study-goal-widget');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('ring-4', 'ring-amber-400');
+                    setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 1500);
+                  }
+                }}
+                className="flex items-center gap-1 text-emerald-800 hover:text-emerald-950 transition-colors cursor-pointer"
+                title={language === 'ar' ? 'هدف الدراسة اليومي' : 'Objectif quotidien'}
+              >
+                <Target className="w-3.5 h-3.5 text-emerald-700" />
+                <span className="text-[11px] font-extrabold">{language === 'ar' ? 'الهدف' : 'Objectif'}</span>
+              </button>
             </div>
 
             {/* Language Switcher */}
