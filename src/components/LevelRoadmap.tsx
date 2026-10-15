@@ -27,6 +27,8 @@ import {
   CheckCheck,
   ChevronRight,
   Music,
+  School,
+  Home,
 } from 'lucide-react';
 
 interface LevelRoadmapProps {
@@ -36,7 +38,7 @@ interface LevelRoadmapProps {
   language: SupportedLanguage;
   onOpenTutor: () => void;
   onOpenSoundGame: () => void;
-  onOpenUnit1Lab?: () => void;
+  onOpenUnit1Lab?: (initialUnitId?: string) => void;
   onOpenThematicVocab?: (categoryId?: ThematicCategoryId) => void;
   onOpenTextStudio?: () => void;
   onOpenCompetencies?: (level?: 'A1' | 'A2') => void;

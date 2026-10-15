@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SupportedLanguage } from '../types';
-import { UNIT_1_FAMILY_COMMUNITY, SessionData, DialogueSentence } from '../data/unitCurriculumData';
+import {
+  UNIT_1_SCHOOL_LIFE,
+  UNIT_2_FAMILY_COMMUNITY,
+  ALL_UNIT_CURRICULUMS,
+  UnitCurriculum,
+  SessionData,
+  DialogueSentence,
+} from '../data/unitCurriculumData';
 import { speakArabic, playSoundEffect, stopAudio } from '../utils/audio';
 import {
   Volume2,
@@ -28,20 +35,32 @@ import {
   Download,
   Flame,
   ArrowRight,
+  School,
+  Home,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface UnitCurriculumLabProps {
   language: SupportedLanguage;
+  initialUnitId?: string;
   onEarnXp?: (amount: number) => void;
   onBackToRoadmap?: () => void;
+  onBack?: () => void;
 }
 
 export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
   language,
+  initialUnitId,
   onEarnXp,
   onBackToRoadmap,
+  onBack,
 }) => {
+  const [selectedUnitId, setSelectedUnitId] = useState<string>(
+    initialUnitId || 'unit-1-school'
+  );
+  const currentCurriculum: UnitCurriculum =
+    ALL_UNIT_CURRICULUMS.find((u) => u.unitId === selectedUnitId) || UNIT_1_SCHOOL_LIFE;
+
   const [selectedSessionIndex, setSelectedSessionIndex] = useState<number>(0);
   const [activeComponentTab, setActiveComponentTab] = useState<
     'dialogue' | 'oral_comp' | 'speaking' | 'reading' | 'writing' | 'eval'
@@ -83,7 +102,8 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
   const [savedIdentityCard, setSavedIdentityCard] = useState<boolean>(false);
 
   // Current session data
-  const session: SessionData = UNIT_1_FAMILY_COMMUNITY.sessions[selectedSessionIndex] || UNIT_1_FAMILY_COMMUNITY.sessions[0];
+  const session: SessionData =
+    currentCurriculum.sessions[selectedSessionIndex] || currentCurriculum.sessions[0];
   const isEvaluationSession = selectedSessionIndex === 5;
 
   // Speech Recognition Init
@@ -297,21 +317,78 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
       <div className="bg-gradient-to-r from-emerald-800 via-teal-900 to-amber-950 text-white p-6 rounded-3xl shadow-xl border border-emerald-700/50 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
+        {/* Domain Switcher: Domaine 1 vs Domaine 2 */}
+        <div className="relative z-10 mb-5 flex flex-wrap items-center justify-between gap-3 bg-emerald-950/70 p-2 sm:p-2.5 rounded-2xl border border-emerald-500/40 backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-black text-amber-300 px-2 flex items-center gap-1.5">
+              <span>المجال:</span>
+            </span>
+            <button
+              onClick={() => {
+                setSelectedUnitId('unit-1-school');
+                setSelectedSessionIndex(0);
+                setActiveComponentTab('dialogue');
+                playSoundEffect('tap');
+              }}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                selectedUnitId === 'unit-1-school'
+                  ? 'bg-amber-400 text-slate-950 shadow-md scale-102 ring-2 ring-amber-300'
+                  : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+              }`}
+            >
+              <School className="w-4 h-4" />
+              <span>المجال 1: الحَيَاةُ المَدْرَسِيَّةُ وَالتَّعَارُفُ (الوحدة 1)</span>
+              <span className="text-[10px] opacity-80 font-sans hidden md:inline">(د، ر، ب، ت، ج)</span>
+            </button>
+            <button
+              onClick={() => {
+                setSelectedUnitId('unit-1-family');
+                setSelectedSessionIndex(0);
+                setActiveComponentTab('dialogue');
+                playSoundEffect('tap');
+              }}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                selectedUnitId === 'unit-1-family'
+                  ? 'bg-amber-400 text-slate-950 shadow-md scale-102 ring-2 ring-amber-300'
+                  : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              <span>المجال 2: الأُسْرَةُ وَالمُحِيطُ (الوحدة 2)</span>
+              <span className="text-[10px] opacity-80 font-sans hidden md:inline">(م، ك، ل، ن، س)</span>
+            </button>
+          </div>
+
+          {(onBackToRoadmap || onBack) && (
+            <button
+              onClick={() => {
+                if (onBackToRoadmap) onBackToRoadmap();
+                else if (onBack) onBack();
+                playSoundEffect('tap');
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/10 cursor-pointer"
+            >
+              <span>العودة للمسار</span>
+              <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+            </button>
+          )}
+        </div>
+
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="bg-amber-400 text-amber-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                {UNIT_1_FAMILY_COMMUNITY.level}
+                {currentCurriculum.level}
               </span>
               <span className="bg-emerald-700/80 text-emerald-100 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/40">
-                {UNIT_1_FAMILY_COMMUNITY.academicYear}
+                {currentCurriculum.academicYear}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-amber-100 tracking-tight font-arabic">
-              {UNIT_1_FAMILY_COMMUNITY.themeAr}
+              {currentCurriculum.themeAr}
             </h1>
             <p className="text-emerald-200 text-sm font-medium font-sans">
-              {UNIT_1_FAMILY_COMMUNITY.themeFr}
+              {currentCurriculum.themeFr}
             </p>
           </div>
 
@@ -349,7 +426,7 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
 
         {/* Sessions Stepper Bar (الحصص من 1 إلى 6) */}
         <div className="mt-6 pt-4 border-t border-emerald-700/60 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-          {UNIT_1_FAMILY_COMMUNITY.sessions.map((s, idx) => {
+          {currentCurriculum.sessions.map((s, idx) => {
             const isSelected = selectedSessionIndex === idx;
             return (
               <button
@@ -1344,10 +1421,10 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
                   Bilan & Évaluation
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-black font-arabic mt-1">
-                  {UNIT_1_FAMILY_COMMUNITY.consolidationSession.titleAr}
+                  {currentCurriculum.consolidationSession.titleAr}
                 </h2>
                 <p className="text-amber-100 text-xs sm:text-sm font-sans">
-                  {UNIT_1_FAMILY_COMMUNITY.consolidationSession.descriptionFr}
+                  {currentCurriculum.consolidationSession.descriptionFr}
                 </p>
               </div>
             </div>
@@ -1367,7 +1444,7 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
               </div>
 
               <div className="space-y-2">
-                {UNIT_1_FAMILY_COMMUNITY.consolidationSession.evaluationTasks[0].items.map(
+                {currentCurriculum.consolidationSession.evaluationTasks[0].items.map(
                   (item: any, i: number) => (
                     <div
                       key={i}
@@ -1414,7 +1491,7 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {UNIT_1_FAMILY_COMMUNITY.consolidationSession.evaluationTasks[1].items.map(
+                {currentCurriculum.consolidationSession.evaluationTasks[1].items.map(
                   (inst: any, i: number) => (
                     <div
                       key={i}
