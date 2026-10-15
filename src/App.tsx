@@ -21,9 +21,13 @@ import { CEFRCompetenciesModal } from './components/CEFRCompetenciesModal';
 import { ArabicChantsModal } from './components/ArabicChantsModal';
 import { InstallAppTelegramModal } from './components/InstallAppTelegramModal';
 import { ReadingHierarchyTab } from './components/ReadingHierarchySection';
+import { WordSubstitutionLab } from './components/WordSubstitutionLab';
 import { ThematicCategoryId } from './data/thematicVocabularyData';
 import { Footer } from './components/Footer';
 import { CulturalProverbs } from './components/CulturalProverbs';
+import { ClassroomConsignesLab } from './components/ClassroomConsignesLab';
+import { AcademicCalendarModal } from './components/AcademicCalendarModal';
+import { CommunicativeFunctionsLab } from './components/CommunicativeFunctionsLab';
 import { playSoundEffect } from './utils/audio';
 import {
   Compass,
@@ -43,6 +47,10 @@ import {
   Music,
   Smartphone,
   Send,
+  RotateCcw,
+  Calendar,
+  Hand,
+  Droplets,
 } from 'lucide-react';
 
 export default function App() {
@@ -51,9 +59,11 @@ export default function App() {
     const saved = localStorage.getItem('arabiya_lang');
     return (saved as SupportedLanguage) || 'fr';
   });
-  const [activeView, setActiveView] = useState<'roadmap' | 'vocabHub' | 'textStudio' | 'lesson' | 'tutor' | 'soundLab' | 'speakingLab' | 'unit1Lab'>('roadmap');
+  const [activeView, setActiveView] = useState<'roadmap' | 'vocabHub' | 'textStudio' | 'lesson' | 'tutor' | 'soundLab' | 'speakingLab' | 'unit1Lab' | 'substitutionLab' | 'consignesLab' | 'communicativeLab'>('roadmap');
   const [selectedUnit, setSelectedUnit] = useState<LessonUnit | null>(null);
   const [selectedVocabCategory, setSelectedVocabCategory] = useState<ThematicCategoryId | 'all'>('all');
+  const [selectedCurriculumUnitId, setSelectedCurriculumUnitId] = useState<string>('unit-1-school');
+  const [isAcademicCalendarOpen, setIsAcademicCalendarOpen] = useState(false);
 
   // Gamification State (with local storage persistence)
   const [xp, setXp] = useState<number>(() => {
@@ -246,7 +256,8 @@ export default function App() {
           setActiveView('speakingLab');
           playSoundEffect('tap');
         }}
-        onOpenUnit1Lab={() => {
+        onOpenUnit1Lab={(unitId) => {
+          setSelectedCurriculumUnitId(unitId || 'unit-1-school');
           setActiveView('unit1Lab');
           setSelectedUnit(null);
           playSoundEffect('tap');
@@ -366,21 +377,179 @@ export default function App() {
                 <span>{language === 'ar' ? 'التعبير الشفهي' : language === 'fr' ? 'Oral & Écoute' : 'Speaking'}</span>
               </button>
 
-              {/* Unit 1 Lab */}
+              {/* Official 4 Domains Curriculum Hub */}
               <button
                 onClick={() => {
+                  setSelectedCurriculumUnitId('unit-1-school');
                   setActiveView('unit1Lab');
                   setSelectedUnit(null);
                   playSoundEffect('tap');
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeView === 'unit1Lab'
-                    ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white shadow-sm shadow-amber-500/30'
-                    : 'text-amber-950 bg-white hover:bg-amber-50 border border-amber-200'
+                  activeView === 'unit1Lab' && selectedCurriculumUnitId === 'unit-1-school'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-sm ring-2 ring-emerald-400 font-black'
+                    : 'text-emerald-950 bg-white hover:bg-emerald-50 border border-emerald-200'
                 }`}
+                title="المجال 1: الحياة المدرسية والتعارف (د، ر، ب، ت، ج)"
+              >
+                <span className="text-sm">🏫</span>
+                <span className="font-arabic font-extrabold">{language === 'ar' ? 'المجال 1 (المدرسة)' : 'Domaine 1 (École)'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedCurriculumUnitId('unit-1-family');
+                  setActiveView('unit1Lab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'unit1Lab' && selectedCurriculumUnitId === 'unit-1-family'
+                    ? 'bg-gradient-to-r from-teal-600 to-emerald-700 text-white shadow-sm ring-2 ring-teal-400 font-black'
+                    : 'text-teal-950 bg-white hover:bg-teal-50 border border-teal-200'
+                }`}
+                title="المجال 2: الأسرة والمحيط (م، ك، ل، ن، س)"
               >
                 <span className="text-sm">👨‍👩‍👧‍👦</span>
-                <span className="font-arabic font-extrabold">{language === 'ar' ? 'الوحدة 1 (الأسرة)' : language === 'fr' ? 'Unité 1 (Famille)' : 'Unit 1 (Family)'}</span>
+                <span className="font-arabic font-extrabold">{language === 'ar' ? 'المجال 2 (الأسرة)' : 'Domaine 2 (Famille)'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedCurriculumUnitId('unit-3-health');
+                  setActiveView('unit1Lab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'unit1Lab' && selectedCurriculumUnitId === 'unit-3-health'
+                    ? 'bg-gradient-to-r from-rose-600 to-amber-700 text-white shadow-sm ring-2 ring-rose-400 font-black'
+                    : 'text-rose-950 bg-white hover:bg-rose-50 border border-rose-200'
+                }`}
+                title="المجال 3: الهندام والنظافة والصحة (ف، ق، ع، ح، ص)"
+              >
+                <span className="text-sm">🪥</span>
+                <span className="font-arabic font-extrabold">{language === 'ar' ? 'المجال 3 (الصحة)' : 'Domaine 3 (Santé)'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedCurriculumUnitId('unit-4-village-city');
+                  setActiveView('unit1Lab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'unit1Lab' && selectedCurriculumUnitId === 'unit-4-village-city'
+                    ? 'bg-gradient-to-r from-cyan-600 to-teal-700 text-white shadow-sm ring-2 ring-cyan-400 font-black'
+                    : 'text-cyan-950 bg-white hover:bg-cyan-50 border border-cyan-200'
+                }`}
+                title="المجال 4: القرية والمدينة والبيئة (ش، ي، ط، ض، و)"
+              >
+                <span className="text-sm">🌳</span>
+                <span className="font-arabic font-extrabold">{language === 'ar' ? 'المجال 4 (المدينة)' : 'Domaine 4 (Ville)'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedCurriculumUnitId('unit-5-water');
+                  setActiveView('unit1Lab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'unit1Lab' && selectedCurriculumUnitId === 'unit-5-water'
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-700 text-white shadow-sm ring-2 ring-blue-400 font-black'
+                    : 'text-blue-950 bg-white hover:bg-blue-50 border border-blue-200'
+                }`}
+                title="المجال 5: الماء والحياة والطبيعة (ظ، غ، خ، ث، ذ)"
+              >
+                <span className="text-sm">💧</span>
+                <span className="font-arabic font-extrabold">{language === 'ar' ? 'المجال 5 (الماء)' : 'Domaine 5 (Eau)'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedCurriculumUnitId('unit-6-games-travel');
+                  setActiveView('unit1Lab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'unit1Lab' && selectedCurriculumUnitId === 'unit-6-games-travel'
+                    ? 'bg-gradient-to-r from-indigo-600 to-blue-700 text-white shadow-sm ring-2 ring-indigo-400 font-black'
+                    : 'text-indigo-950 bg-white hover:bg-indigo-50 border border-indigo-200'
+                }`}
+                title="المجال 6: اللعب والمرح والرحلات (ز، هـ، ء / 28 حرفاً)"
+              >
+                <span className="text-sm">🎡</span>
+                <span className="font-arabic font-extrabold">{language === 'ar' ? 'المجال 6 (الرحلات)' : 'Domaine 6 (Voyages)'}</span>
+              </button>
+
+              {/* Official References Bar: Calendar, EILE Consignes, éduscol Functions */}
+              <button
+                onClick={() => {
+                  setIsAcademicCalendarOpen(true);
+                  playSoundEffect('tap');
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-slate-900 text-amber-300 hover:bg-slate-800 shadow-sm"
+                title="تنظيم السنة الدراسية 2025/2026 - إعداد المفتش التربوي محمد اعزة"
+              >
+                <Calendar className="w-3.5 h-3.5 text-amber-300" />
+                <span className="font-arabic font-bold">{language === 'ar' ? 'أجندة 2025/2026' : 'Planning 2025/2026'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveView('consignesLab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'consignesLab'
+                    ? 'bg-gradient-to-r from-teal-700 to-emerald-800 text-white shadow-sm ring-2 ring-teal-400 font-black'
+                    : 'text-teal-950 bg-teal-50 hover:bg-teal-100 border border-teal-300'
+                }`}
+                title="Phrases types et consignes avec gestes/posture (EILE CE1 à CM2)"
+              >
+                <Hand className="w-3.5 h-3.5 text-amber-600" />
+                <span className="font-arabic font-bold">{language === 'ar' ? 'لغة القسم والإشارات (EILE)' : 'Consignes & Gestes'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveView('communicativeLab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'communicativeLab'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 shadow-sm ring-2 ring-amber-400 font-black'
+                    : 'text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300'
+                }`}
+                title="الوظائف التواصلية والتنوع اللغوي A1-A2 (éduscol)"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-amber-700" />
+                <span className="font-arabic font-bold">{language === 'ar' ? 'الوظائف التواصلية (A1-A2)' : 'Fonctions A1-A2'}</span>
+              </button>
+
+              {/* Word Substitution Lab (ركب واقرأ - مهارة التعويض) */}
+              <button
+                id="btn-main-substitution-lab"
+                onClick={() => {
+                  setActiveView('substitutionLab');
+                  setSelectedUnit(null);
+                  playSoundEffect('tap');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'substitutionLab'
+                    ? 'bg-gradient-to-r from-emerald-600 via-teal-700 to-amber-600 text-white shadow-sm shadow-emerald-600/30 ring-2 ring-amber-400'
+                    : 'text-emerald-950 bg-emerald-100/90 hover:bg-emerald-200 border border-emerald-300'
+                }`}
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-emerald-800" />
+                <span className="font-arabic">{language === 'ar' ? 'رَكِّبْ وَاقْرَأْ 🔄 (التعويض)' : language === 'fr' ? 'Remplacer 🔄' : 'Substitution 🔄'}</span>
+                <span className="bg-amber-400 text-slate-950 text-[9px] px-1.5 py-0.2 rounded-full font-black">جديد</span>
               </button>
 
               {/* Speed Reading Challenge */}
@@ -497,7 +666,8 @@ export default function App() {
               language={language}
               onOpenTutor={() => setActiveView('tutor')}
               onOpenSoundGame={() => setActiveView('soundLab')}
-              onOpenUnit1Lab={() => {
+              onOpenUnit1Lab={(unitId) => {
+                setSelectedCurriculumUnitId(unitId || 'unit-1-school');
                 setActiveView('unit1Lab');
                 playSoundEffect('tap');
               }}
@@ -505,6 +675,23 @@ export default function App() {
               onOpenTextStudio={handleOpenTextStudio}
               onOpenCompetencies={handleOpenCompetencies}
               onOpenChants={handleOpenChants}
+              onOpenClassroomConsignes={() => {
+                setActiveView('consignesLab');
+                playSoundEffect('tap');
+              }}
+              onOpenAcademicCalendar={() => {
+                setIsAcademicCalendarOpen(true);
+                playSoundEffect('tap');
+              }}
+              onOpenCommunicativeFunctions={(lvl) => {
+                if (lvl) setCurrentLevel(lvl);
+                setActiveView('communicativeLab');
+                playSoundEffect('tap');
+              }}
+              onSelectLevel={(lvl) => {
+                setCurrentLevel(lvl);
+                playSoundEffect('tap');
+              }}
               onEarnXp={(amt) => {
                 setXp((x) => x + amt);
               }}
@@ -552,6 +739,22 @@ export default function App() {
 
         {activeView === 'unit1Lab' && (
           <UnitCurriculumLab
+            key={selectedCurriculumUnitId}
+            language={language}
+            initialUnitId={selectedCurriculumUnitId}
+            onBack={() => {
+              setActiveView('roadmap');
+              playSoundEffect('tap');
+            }}
+            onEarnXp={(amt) => {
+              setXp((x) => x + amt);
+              setGems((g) => g + Math.ceil(amt / 10));
+            }}
+          />
+        )}
+
+        {activeView === 'substitutionLab' && (
+          <WordSubstitutionLab
             language={language}
             onBack={() => {
               setActiveView('roadmap');
@@ -620,9 +823,40 @@ export default function App() {
             <AudioDiscriminationGame language={language} onComplete={() => setXp((x) => x + 30)} />
           </div>
         )}
+
+        {activeView === 'consignesLab' && (
+          <ClassroomConsignesLab
+            language={language}
+            onBack={() => {
+              setActiveView('roadmap');
+              playSoundEffect('tap');
+            }}
+          />
+        )}
+
+        {activeView === 'communicativeLab' && (
+          <CommunicativeFunctionsLab
+            language={language}
+            initialLevel={currentLevel === 'A2' ? 'A2' : 'A1'}
+            onBack={() => {
+              setActiveView('roadmap');
+              playSoundEffect('tap');
+            }}
+          />
+        )}
       </main>
 
       {/* Global Modals */}
+      <AcademicCalendarModal
+        isOpen={isAcademicCalendarOpen}
+        onClose={() => setIsAcademicCalendarOpen(false)}
+        language={language}
+        onSelectUnit={(unitId) => {
+          setSelectedCurriculumUnitId(unitId);
+          setActiveView('unit1Lab');
+        }}
+      />
+
       <GrammarAnalyzerModal
         isOpen={isGrammarModalOpen}
         onClose={() => setIsGrammarModalOpen(false)}

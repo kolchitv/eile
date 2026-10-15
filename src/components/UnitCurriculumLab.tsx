@@ -9,6 +9,7 @@ import {
   DialogueSentence,
 } from '../data/unitCurriculumData';
 import { speakArabic, playSoundEffect, stopAudio } from '../utils/audio';
+import { WordSubstitutionLab } from './WordSubstitutionLab';
 import {
   Volume2,
   VolumeX,
@@ -30,6 +31,8 @@ import {
   Heart,
   ChevronRight,
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   Check,
   Send,
   Download,
@@ -37,6 +40,15 @@ import {
   ArrowRight,
   School,
   Home,
+  HeartPulse,
+  Trees,
+  Droplets,
+  Compass,
+  Calendar,
+  LayoutGrid,
+  List,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -58,8 +70,22 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
   const [selectedUnitId, setSelectedUnitId] = useState<string>(
     initialUnitId || 'unit-1-school'
   );
+  
+  // Sync selected unit when initialUnitId prop changes
+  useEffect(() => {
+    if (initialUnitId) {
+      setSelectedUnitId(initialUnitId);
+      setSelectedSessionIndex(0);
+    }
+  }, [initialUnitId]);
+
+  // Header compact/collapsed state to address user annoyance of scrolling
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState<boolean>(false);
+  // Compact dialogue presentation mode (all sentences visible on screen)
+  const [isCompactDialogueView, setIsCompactDialogueView] = useState<boolean>(false);
+
   const currentCurriculum: UnitCurriculum =
-    ALL_UNIT_CURRICULUMS.find((u) => u.unitId === selectedUnitId) || UNIT_1_SCHOOL_LIFE;
+    ALL_UNIT_CURRICULUMS.find((u) => u.unitId === selectedUnitId) || ALL_UNIT_CURRICULUMS[0] || UNIT_1_SCHOOL_LIFE;
 
   const [selectedSessionIndex, setSelectedSessionIndex] = useState<number>(0);
   const [activeComponentTab, setActiveComponentTab] = useState<
@@ -90,6 +116,7 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
   // Reading Quiz state
   const [readingQuizAnswer, setReadingQuizAnswer] = useState<number | null>(null);
   const [readingQuizSubmitted, setReadingQuizSubmitted] = useState<boolean>(false);
+  const [showSubstitutionLab, setShowSubstitutionLab] = useState<boolean>(false);
 
   // Student Identity Card State (Fiche d'identité)
   const [identityCardData, setIdentityCardData] = useState({
@@ -313,171 +340,380 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Header Banner - Official Syllabus Distribution */}
-      <div className="bg-gradient-to-r from-emerald-800 via-teal-900 to-amber-950 text-white p-6 rounded-3xl shadow-xl border border-emerald-700/50 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-
-        {/* Domain Switcher: Domaine 1 vs Domaine 2 */}
-        <div className="relative z-10 mb-5 flex flex-wrap items-center justify-between gap-3 bg-emerald-950/70 p-2 sm:p-2.5 rounded-2xl border border-emerald-500/40 backdrop-blur-md">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-black text-amber-300 px-2 flex items-center gap-1.5">
-              <span>المجال:</span>
-            </span>
-            <button
-              onClick={() => {
-                setSelectedUnitId('unit-1-school');
-                setSelectedSessionIndex(0);
-                setActiveComponentTab('dialogue');
-                playSoundEffect('tap');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
-                selectedUnitId === 'unit-1-school'
-                  ? 'bg-amber-400 text-slate-950 shadow-md scale-102 ring-2 ring-amber-300'
-                  : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
-              }`}
-            >
-              <School className="w-4 h-4" />
-              <span>المجال 1: الحَيَاةُ المَدْرَسِيَّةُ وَالتَّعَارُفُ (الوحدة 1)</span>
-              <span className="text-[10px] opacity-80 font-sans hidden md:inline">(د، ر، ب، ت، ج)</span>
-            </button>
-            <button
-              onClick={() => {
-                setSelectedUnitId('unit-1-family');
-                setSelectedSessionIndex(0);
-                setActiveComponentTab('dialogue');
-                playSoundEffect('tap');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
-                selectedUnitId === 'unit-1-family'
-                  ? 'bg-amber-400 text-slate-950 shadow-md scale-102 ring-2 ring-amber-300'
-                  : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
-              }`}
-            >
-              <Home className="w-4 h-4" />
-              <span>المجال 2: الأُسْرَةُ وَالمُحِيطُ (الوحدة 2)</span>
-              <span className="text-[10px] opacity-80 font-sans hidden md:inline">(م، ك، ل، ن، س)</span>
-            </button>
+      {/* Header Banner - Sleek, Collapsible & Multi-Domain */}
+      {isHeaderCollapsed ? (
+        /* Ultra-compact sticky top bar (~48px) to eliminate scrolling */
+        <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-950 text-white p-2.5 sm:p-3 rounded-2xl shadow-lg border border-emerald-500/40 flex flex-wrap items-center justify-between gap-2.5 sticky top-2 z-30 backdrop-blur-md">
+          {/* Domain Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-black text-amber-300 ml-1">المجال:</span>
+            {ALL_UNIT_CURRICULUMS.map((u, i) => {
+              const isSelected = selectedUnitId === u.unitId;
+              const icons = [School, Home, HeartPulse, Trees, Droplets, Compass];
+              const IconComp = icons[i % icons.length] || School;
+              return (
+                <button
+                  key={u.unitId}
+                  onClick={() => {
+                    setSelectedUnitId(u.unitId);
+                    setSelectedSessionIndex(0);
+                    playSoundEffect('tap');
+                  }}
+                  className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                    isSelected
+                      ? 'bg-amber-400 text-slate-950 font-black shadow-sm ring-1 ring-amber-300'
+                      : 'bg-white/10 text-emerald-200 hover:bg-white/20 hover:text-white'
+                  }`}
+                  title={u.themeAr}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  <span>المجال {i + 1}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {(onBackToRoadmap || onBack) && (
-            <button
-              onClick={() => {
-                if (onBackToRoadmap) onBackToRoadmap();
-                else if (onBack) onBack();
-                playSoundEffect('tap');
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/10 cursor-pointer"
-            >
-              <span>العودة للمسار</span>
-              <ArrowRight className="w-3.5 h-3.5 rotate-180" />
-            </button>
-          )}
-        </div>
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-amber-400 text-amber-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                {currentCurriculum.level}
-              </span>
-              <span className="bg-emerald-700/80 text-emerald-100 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/40">
-                {currentCurriculum.academicYear}
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-amber-100 tracking-tight font-arabic">
-              {currentCurriculum.themeAr}
-            </h1>
-            <p className="text-emerald-200 text-sm font-medium font-sans">
-              {currentCurriculum.themeFr}
-            </p>
-          </div>
-
-          {/* Quick Sound Speed Control */}
-          <div className="flex items-center gap-2 bg-emerald-950/60 p-2 rounded-2xl border border-emerald-600/40 backdrop-blur-md">
-            <span className="text-xs font-bold text-amber-300 px-2">سرعة الصوت:</span>
-            <button
-              onClick={() => {
-                setAudioSpeedSlow(false);
-                playSoundEffect('tap');
-              }}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
-                !audioSpeedSlow
-                  ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
-                  : 'text-emerald-200 hover:text-white'
-              }`}
-            >
-              عادي 1.0x
-            </button>
-            <button
-              onClick={() => {
-                setAudioSpeedSlow(true);
-                playSoundEffect('tap');
-              }}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
-                audioSpeedSlow
-                  ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
-                  : 'text-emerald-200 hover:text-white'
-              }`}
-            >
-              بطيء للأطفال 0.7x 🐢
-            </button>
-          </div>
-        </div>
-
-        {/* Sessions Stepper Bar (الحصص من 1 إلى 6) */}
-        <div className="mt-6 pt-4 border-t border-emerald-700/60 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-          {currentCurriculum.sessions.map((s, idx) => {
-            const isSelected = selectedSessionIndex === idx;
-            return (
+          {/* Session Stepper Mini Pills */}
+          <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+            {currentCurriculum.sessions.map((s, idx) => (
               <button
                 key={s.sessionNumber}
                 onClick={() => {
                   setSelectedSessionIndex(idx);
                   playSoundEffect('tap');
                 }}
-                className={`p-3 rounded-2xl text-right transition-all flex flex-col justify-between gap-1.5 border ${
-                  isSelected
-                    ? 'bg-amber-400 text-amber-950 border-amber-300 font-black shadow-lg scale-102 ring-2 ring-amber-300/60'
-                    : 'bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-100 border-emerald-700/40'
+                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${
+                  selectedSessionIndex === idx
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+                title={s.sessionTitleAr}
+              >
+                {s.sessionNumber}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                setSelectedSessionIndex(5);
+                playSoundEffect('tap');
+              }}
+              className={`px-2 h-7 rounded-lg text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${
+                selectedSessionIndex === 5
+                  ? 'bg-amber-400 text-slate-950 font-black'
+                  : 'text-amber-300 hover:bg-white/10'
+              }`}
+              title="تقويم ودعم"
+            >
+              🏆
+            </button>
+          </div>
+
+          {/* Controls: Target letter, Speed, Expand Header */}
+          <div className="flex items-center gap-2">
+            {!isEvaluationSession && (
+              <span className="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-200 border border-amber-400/30 text-xs font-bold font-arabic">
+                الحرف: {session.targetLetter.letter} ({session.targetLetter.letterNameAr})
+              </span>
+            )}
+
+            <button
+              onClick={() => {
+                setAudioSpeedSlow(!audioSpeedSlow);
+                playSoundEffect('tap');
+              }}
+              className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-200 text-xs font-bold border border-white/10"
+              title="سرعة الصوت"
+            >
+              {audioSpeedSlow ? '🐢 0.7x' : '⚡ 1.0x'}
+            </button>
+
+            {/* EXPAND BUTTON */}
+            <button
+              onClick={() => {
+                setIsHeaderCollapsed(false);
+                playSoundEffect('tap');
+              }}
+              className="px-3 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+              title="إظهار الترويسة الكاملة"
+            >
+              <ChevronDown className="w-3.5 h-3.5 stroke-[3]" />
+              <span>إظهار الترويسة</span>
+            </button>
+
+            {(onBackToRoadmap || onBack) && (
+              <button
+                onClick={() => {
+                  if (onBackToRoadmap) onBackToRoadmap();
+                  else if (onBack) onBack();
+                  playSoundEffect('tap');
+                }}
+                className="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 text-xs font-bold border border-rose-500/30 cursor-pointer"
+              >
+                خروج ✕
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Standard Header Banner - Compact, Clean & 4 Domains */
+        <div className="bg-gradient-to-r from-emerald-800 via-teal-900 to-amber-950 text-white p-4 sm:p-5 rounded-3xl shadow-xl border border-emerald-700/50 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+
+          {/* Domain Switcher: All 4 Official Domains of Level A1 */}
+          <div className="relative z-10 mb-3.5 flex flex-wrap items-center justify-between gap-2.5 bg-emerald-950/80 p-2 rounded-2xl border border-emerald-500/40 backdrop-blur-md">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-black text-amber-300 px-1 flex items-center gap-1">
+                <span>المجال:</span>
+              </span>
+
+              {/* Domain 1: School */}
+              <button
+                onClick={() => {
+                  setSelectedUnitId('unit-1-school');
+                  setSelectedSessionIndex(0);
+                  setActiveComponentTab('dialogue');
+                  playSoundEffect('tap');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedUnitId === 'unit-1-school'
+                    ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                    : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
                 }`}
               >
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-black/10">
-                    الحصة {s.sessionNumber}
-                  </span>
-                  <span className="text-lg font-black bg-white/20 w-7 h-7 rounded-full flex items-center justify-center">
+                <School className="w-3.5 h-3.5" />
+                <span>المجال 1: الحَيَاةُ المَدْرَسِيَّةُ</span>
+                <span className="text-[10px] opacity-80 font-sans hidden lg:inline">(د، ر، ب، ت، ج)</span>
+              </button>
+
+              {/* Domain 2: Family */}
+              <button
+                onClick={() => {
+                  setSelectedUnitId('unit-1-family');
+                  setSelectedSessionIndex(0);
+                  setActiveComponentTab('dialogue');
+                  playSoundEffect('tap');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedUnitId === 'unit-1-family'
+                    ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                    : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+                }`}
+              >
+                <Home className="w-3.5 h-3.5" />
+                <span>المجال 2: الأُسْرَةُ وَالمُحِيطُ</span>
+                <span className="text-[10px] opacity-80 font-sans hidden lg:inline">(م، ك، ل، ن، س)</span>
+              </button>
+
+              {/* Domain 3: Health & Hygiene */}
+              <button
+                onClick={() => {
+                  setSelectedUnitId('unit-3-health');
+                  setSelectedSessionIndex(0);
+                  setActiveComponentTab('dialogue');
+                  playSoundEffect('tap');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedUnitId === 'unit-3-health'
+                    ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                    : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+                }`}
+              >
+                <HeartPulse className="w-3.5 h-3.5" />
+                <span>المجال 3: الهِنْدَامُ وَالصِّحَّةُ</span>
+                <span className="text-[10px] opacity-80 font-sans hidden lg:inline">(ف، ق، ع، ح، ص)</span>
+              </button>
+
+              {/* Domain 4: Village & City */}
+              <button
+                onClick={() => {
+                  setSelectedUnitId('unit-4-village-city');
+                  setSelectedSessionIndex(0);
+                  setActiveComponentTab('dialogue');
+                  playSoundEffect('tap');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedUnitId === 'unit-4-village-city'
+                    ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                    : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+                }`}
+              >
+                <Trees className="w-3.5 h-3.5" />
+                <span>المجال 4: القَرْيَةُ وَالمَدِينَةُ</span>
+                <span className="text-[10px] opacity-80 font-sans hidden lg:inline">(ش، ي، ط، ض، و)</span>
+              </button>
+
+              {/* Domain 5: Water & Life */}
+              <button
+                onClick={() => {
+                  setSelectedUnitId('unit-5-water');
+                  setSelectedSessionIndex(0);
+                  setActiveComponentTab('dialogue');
+                  playSoundEffect('tap');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedUnitId === 'unit-5-water'
+                    ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                    : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+                }`}
+              >
+                <Droplets className="w-3.5 h-3.5" />
+                <span>المجال 5: المَاءُ وَالحَيَاةُ</span>
+                <span className="text-[10px] opacity-80 font-sans hidden lg:inline">(ظ، غ، خ، ث، ذ)</span>
+              </button>
+
+              {/* Domain 6: Games & Travel */}
+              <button
+                onClick={() => {
+                  setSelectedUnitId('unit-6-games-travel');
+                  setSelectedSessionIndex(0);
+                  setActiveComponentTab('dialogue');
+                  playSoundEffect('tap');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedUnitId === 'unit-6-games-travel'
+                    ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                    : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+                }`}
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span>المجال 6: اللَّعِبُ وَالرِّحْلَاتُ</span>
+                <span className="text-[10px] opacity-80 font-sans hidden lg:inline">(ز، هـ، ء / 28 حرفاً)</span>
+              </button>
+            </div>
+
+            {/* Quick Actions in top row: Collapse Header & Back */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setIsHeaderCollapsed(true);
+                  playSoundEffect('tap');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer"
+                title="طي الترويسة لتوفير مساحة كاملة للجمل بدون سكرول"
+              >
+                <ChevronUp className="w-3.5 h-3.5 stroke-[3]" />
+                <span>طي الترويسة (بدون سكرول) ⬆️</span>
+              </button>
+
+              {(onBackToRoadmap || onBack) && (
+                <button
+                  onClick={() => {
+                    if (onBackToRoadmap) onBackToRoadmap();
+                    else if (onBack) onBack();
+                    playSoundEffect('tap');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/10 cursor-pointer"
+                >
+                  <span>العودة للمسار</span>
+                  <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="bg-amber-400 text-amber-950 text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  {currentCurriculum.level}
+                </span>
+                <span className="bg-emerald-700/80 text-emerald-100 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/40">
+                  {currentCurriculum.academicYear}
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-amber-100 tracking-tight font-arabic">
+                {currentCurriculum.themeAr}
+              </h1>
+              <p className="text-emerald-200 text-xs font-medium font-sans">
+                {currentCurriculum.themeFr}
+              </p>
+            </div>
+
+            {/* Quick Sound Speed Control */}
+            <div className="flex items-center gap-1.5 bg-emerald-950/60 p-1.5 rounded-2xl border border-emerald-600/40 backdrop-blur-md">
+              <span className="text-xs font-bold text-amber-300 px-1.5">السرعة:</span>
+              <button
+                onClick={() => {
+                  setAudioSpeedSlow(false);
+                  playSoundEffect('tap');
+                }}
+                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                  !audioSpeedSlow
+                    ? 'bg-amber-400 text-slate-950 shadow-md font-black'
+                    : 'text-emerald-200 hover:text-white'
+                }`}
+              >
+                عادي 1.0x
+              </button>
+              <button
+                onClick={() => {
+                  setAudioSpeedSlow(true);
+                  playSoundEffect('tap');
+                }}
+                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                  audioSpeedSlow
+                    ? 'bg-amber-400 text-slate-950 shadow-md font-black'
+                    : 'text-emerald-200 hover:text-white'
+                }`}
+              >
+                بطيء 0.7x 🐢
+              </button>
+            </div>
+          </div>
+
+          {/* Sessions Stepper Bar (الحصص من 1 إلى 6) - Compact & Elegant */}
+          <div className="mt-4 pt-3 border-t border-emerald-700/60 grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {currentCurriculum.sessions.map((s, idx) => {
+              const isSelected = selectedSessionIndex === idx;
+              return (
+                <button
+                  key={s.sessionNumber}
+                  onClick={() => {
+                    setSelectedSessionIndex(idx);
+                    playSoundEffect('tap');
+                  }}
+                  className={`p-2 sm:p-2.5 rounded-2xl text-right transition-all flex items-center justify-between border cursor-pointer ${
+                    isSelected
+                      ? 'bg-amber-400 text-amber-950 border-amber-300 font-black shadow-md ring-2 ring-amber-300/60 scale-[1.02]'
+                      : 'bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-100 border-emerald-700/40'
+                  }`}
+                >
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold block opacity-80">
+                      الحصة {s.sessionNumber}
+                    </span>
+                    <span className="text-xs font-bold truncate block">
+                      {s.targetLetter.letterNameAr}
+                    </span>
+                  </div>
+                  <span className="text-base font-black bg-white/20 w-7 h-7 rounded-full flex items-center justify-center shrink-0">
                     {s.targetLetter.letter}
                   </span>
-                </div>
-                <span className="text-xs font-bold truncate leading-snug">
-                  {s.targetLetter.letterNameAr}
-                </span>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
 
-          {/* Hessa 6: Evaluation */}
-          <button
-            onClick={() => {
-              setSelectedSessionIndex(5);
-              playSoundEffect('tap');
-            }}
-            className={`p-3 rounded-2xl text-right transition-all flex flex-col justify-between gap-1.5 border ${
-              selectedSessionIndex === 5
-                ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 border-amber-300 font-black shadow-lg scale-102 ring-2 ring-amber-300/60'
-                : 'bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-100 border-emerald-700/40'
-            }`}
-          >
-            <div className="flex items-center justify-between w-full">
-              <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-black/10">
-                الحصة 6
-              </span>
+            {/* Hessa 6: Evaluation */}
+            <button
+              onClick={() => {
+                setSelectedSessionIndex(5);
+                playSoundEffect('tap');
+              }}
+              className={`p-2 sm:p-2.5 rounded-2xl text-right transition-all flex items-center justify-between border cursor-pointer ${
+                selectedSessionIndex === 5
+                  ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 border-amber-300 font-black shadow-md ring-2 ring-amber-300/60 scale-[1.02]'
+                  : 'bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-100 border-emerald-700/40'
+              }`}
+            >
+              <div>
+                <span className="text-[10px] font-bold block opacity-80">الحصة 6</span>
+                <span className="text-xs font-bold truncate block">تقويم ودعم</span>
+              </div>
               <span className="text-base">🏆</span>
-            </div>
-            <span className="text-xs font-bold truncate">تقويم ودعم</span>
-          </button>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content Area */}
       {!isEvaluationSession ? (
@@ -578,35 +814,69 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
 
           {/* ===================== 1. INTERACTION ORALE (DIALOGUE PHRASE PAR PHRASE) ===================== */}
           {activeComponentTab === 'dialogue' && (
-            <div className="space-y-6">
-              {/* Dialogue Header Card */}
-              <div className="bg-white p-6 rounded-3xl border border-amber-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-1">
+            <div className="space-y-4">
+              {/* Dialogue Header Card - Compact & Clean */}
+              <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-amber-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="bg-emerald-100 text-emerald-800 text-xs font-black px-2.5 py-1 rounded-lg">
+                    <span className="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2 py-0.5 rounded-lg">
                       Interaction orale
                     </span>
-                    <h2 className="text-xl font-black text-slate-900 font-arabic">
+                    <h2 className="text-base sm:text-lg font-black text-slate-900 font-arabic">
                       {session.interactionOrale.titleAr}
                     </h2>
                   </div>
-                  <p className="text-slate-600 text-xs sm:text-sm">
+                  <p className="text-slate-500 text-xs">
                     {session.interactionOrale.objectiveFr}
                   </p>
                 </div>
 
                 {/* Master Actions */}
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* View Mode Toggle: Compact (No scroll) vs Detailed */}
+                  <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                    <button
+                      onClick={() => {
+                        setIsCompactDialogueView(false);
+                        playSoundEffect('tap');
+                      }}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                        !isCompactDialogueView
+                          ? 'bg-white text-slate-900 shadow-xs font-black'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                      title="عرض بطاقات تفاعلية"
+                    >
+                      <List className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">مفصل</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsCompactDialogueView(true);
+                        playSoundEffect('tap');
+                      }}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                        isCompactDialogueView
+                          ? 'bg-amber-400 text-slate-950 shadow-xs font-black'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                      title="عرض مدمج يظهر جميع الجمل دون الحاجة للسكرول"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span>مدمج (بدون سكرول) 📱</span>
+                    </button>
+                  </div>
+
                   <button
                     onClick={() => handlePlayFullDialogue(session.interactionOrale.dialogue)}
-                    className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                       isPlayingAudio && !currentlyPlayingSentenceId
                         ? 'bg-rose-600 text-white animate-pulse'
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
                     }`}
                   >
-                    <Volume2 className="w-4 h-4" />
-                    <span>{isPlayingAudio ? 'إيقاف الصوت' : 'استمع للحوار كاملاً 🔊'}</span>
+                    <Volume2 className="w-3.5 h-3.5" />
+                    <span>{isPlayingAudio ? 'إيقاف' : 'استمع كاملاً 🔊'}</span>
                   </button>
 
                   <button
@@ -614,47 +884,45 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
                       setIsMemorizationMode(!isMemorizationMode);
                       playSoundEffect('tap');
                     }}
-                    className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all border ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
                       isMemorizationMode
-                        ? 'bg-amber-400 text-amber-950 border-amber-500 shadow-md font-black ring-2 ring-amber-300'
+                        ? 'bg-amber-400 text-amber-950 border-amber-500 shadow-xs font-black ring-1 ring-amber-300'
                         : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-200'
                     }`}
                   >
-                    <Sparkles className="w-4 h-4 text-amber-600" />
-                    <span>{isMemorizationMode ? 'وضع الحفظ مُفعّل ✨' : 'تفعيل وضع الحفظ والتسميع 🧠'}</span>
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{isMemorizationMode ? 'وضع الحفظ مُفعّل ✨' : 'تفعيل وضع الحفظ 🧠'}</span>
                   </button>
                 </div>
               </div>
 
-              {/* Memorization Guide Card if Enabled */}
+              {/* Memorization Guide Card if Enabled - Compact */}
               {isMemorizationMode && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-3xl border-2 border-amber-300 shadow-sm space-y-3">
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-3 sm:p-4 rounded-2xl border-2 border-amber-300 shadow-xs space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">🧠</span>
+                      <span className="text-xl">🧠</span>
                       <div>
-                        <h3 className="text-base font-bold text-amber-950 font-arabic">
+                        <h3 className="text-sm font-bold text-amber-950 font-arabic">
                           طريقة الحفظ الميسرة: جمل قصيرة خطوة بخطوة
                         </h3>
-                        <p className="text-xs text-amber-800 font-sans">
-                          Répétez chaque phrase 3 fois, cliquez sur l'œil 👁️ pour masquer les mots et tester votre mémoire !
+                        <p className="text-[11px] text-amber-800 font-sans">
+                          اضغط على العين 👁️ لإخفاء الجملة والتسميع غيباً
                         </p>
                       </div>
                     </div>
-                    <div className="text-left">
-                      <span className="text-xs font-black text-amber-900 bg-amber-200 px-3 py-1 rounded-full">
-                        المحفوظ: {Object.values(memorizedSentences).filter(Boolean).length} / {session.interactionOrale.dialogue.length}
-                      </span>
-                    </div>
+                    <span className="text-xs font-black text-amber-900 bg-amber-200 px-2.5 py-0.5 rounded-full">
+                      المحفوظ: {Object.values(memorizedSentences).filter(Boolean).length} / {session.interactionOrale.dialogue.length}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 pt-1">
                     {session.interactionOrale.memorizationSteps.map((step, idx) => (
                       <div
                         key={idx}
-                        className="bg-white/90 p-2.5 rounded-xl border border-amber-200 text-xs font-bold text-slate-800 flex items-center gap-2"
+                        className="bg-white/90 p-2 rounded-lg border border-amber-200 text-[11px] font-bold text-slate-800 flex items-center gap-1.5"
                       >
-                        <span className="w-5 h-5 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center text-[10px] font-black shrink-0">
+                        <span className="w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center text-[9px] font-black shrink-0">
                           {idx + 1}
                         </span>
                         <span className="truncate">{step}</span>
@@ -664,33 +932,109 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
                 </div>
               )}
 
-              {/* Dialogue Sentences List (Sentence by Sentence) */}
-              <div className="space-y-3">
+              {/* Dialogue Sentences List: Compact (Zero scroll) OR Detailed */}
+              <div className={isCompactDialogueView ? "grid grid-cols-1 md:grid-cols-2 gap-2" : "space-y-2.5"}>
                 {session.interactionOrale.dialogue.map((item, index) => {
                   const isPlaying = currentlyPlayingSentenceId === item.id;
                   const isMasked = maskedSentenceIds[item.id];
                   const isDone = memorizedSentences[item.id];
 
+                  if (isCompactDialogueView) {
+                    /* Ultra-compact sentence card - all sentences fit easily on screen */
+                    return (
+                      <div
+                        key={item.id}
+                        className={`p-3 rounded-2xl border transition-all flex flex-col justify-between gap-1.5 ${
+                          isPlaying
+                            ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-300 shadow-sm'
+                            : isDone
+                            ? 'bg-emerald-50 border-emerald-300'
+                            : 'bg-white border-slate-200 hover:border-amber-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xl">{item.speakerAvatar}</span>
+                            <span className="font-bold text-xs text-slate-800 font-arabic">{item.speaker}</span>
+                            <span className="text-[10px] text-slate-400 font-sans">({item.speakerRoleFr})</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+                              #{index + 1}
+                            </span>
+                            <button
+                              onClick={() => handlePlaySentence(item.arabic, item.id)}
+                              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
+                                isPlaying
+                                  ? 'bg-amber-500 text-white animate-pulse'
+                                  : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900'
+                              }`}
+                              title="استمع للجملة"
+                            >
+                              <Volume2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => toggleMaskSentence(item.id)}
+                              className={`p-1.5 rounded-lg text-xs transition-all ${
+                                isMasked ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                              }`}
+                              title={isMasked ? 'إظهار' : 'إخفاء للحفظ'}
+                            >
+                              {isMasked ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              onClick={() => toggleMemorized(item.id)}
+                              className={`p-1.5 rounded-lg text-xs transition-all ${
+                                isDone ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-400'
+                              }`}
+                              title={isDone ? 'تم الحفظ' : 'حدد كمحفوظ'}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Arabic vocalized sentence */}
+                        <div className="py-0.5">
+                          {isMasked ? (
+                            <p className="text-base sm:text-lg font-black text-slate-400 font-arabic blur-[4px] select-none">
+                              {item.arabic}
+                            </p>
+                          ) : (
+                            <p className="text-base sm:text-lg font-black text-emerald-950 font-arabic leading-snug">
+                              {item.arabic}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Translation footer */}
+                        <div className="text-[11px] text-slate-500 font-sans truncate" dir="ltr">
+                          🇫🇷 {item.french}
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={item.id}
-                      className={`p-5 rounded-3xl border transition-all ${
+                      className={`p-3.5 sm:p-4 rounded-2xl border transition-all ${
                         isPlaying
                           ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-300/80 shadow-md scale-[1.01]'
                           : isDone
                           ? 'bg-emerald-50/80 border-emerald-300'
-                          : 'bg-white border-slate-200/90 hover:border-amber-300 hover:shadow-sm'
+                          : 'bg-white border-slate-200/90 hover:border-amber-300 hover:shadow-xs'
                       }`}
                     >
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         {/* Speaker & Sentence Info */}
-                        <div className="flex items-start gap-3.5 flex-1">
-                          <span className="text-3xl p-2 bg-slate-100 rounded-2xl shrink-0 shadow-inner">
+                        <div className="flex items-start gap-3 flex-1">
+                          <span className="text-2xl sm:text-3xl p-1.5 sm:p-2 bg-slate-100 rounded-xl shrink-0 shadow-inner">
                             {item.speakerAvatar}
                           </span>
-                          <div className="space-y-1.5 flex-1">
+                          <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-sm text-slate-900 font-arabic">
+                              <span className="font-bold text-xs sm:text-sm text-slate-900 font-arabic">
                                 {item.speaker}
                               </span>
                               <span className="text-[11px] text-slate-500 font-sans">
@@ -702,13 +1046,13 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
                             </div>
 
                             {/* Arabic Sentence (with Tashkeel and optional Masking for Memorization) */}
-                            <div className="py-1">
+                            <div className="py-0.5">
                               {isMasked ? (
-                                <p className="text-xl sm:text-2xl font-black text-slate-400 font-arabic tracking-wide filter blur-[4px] select-none">
+                                <p className="text-lg sm:text-xl font-black text-slate-400 font-arabic tracking-wide filter blur-[4px] select-none">
                                   {item.arabic}
                                 </p>
                               ) : (
-                                <p className="text-xl sm:text-2xl font-black text-emerald-900 font-arabic tracking-wide leading-relaxed">
+                                <p className="text-lg sm:text-xl font-black text-emerald-900 font-arabic tracking-wide leading-relaxed">
                                   {item.arabic}
                                 </p>
                               )}
@@ -727,18 +1071,18 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
                         </div>
 
                         {/* Interactive Buttons for Each Sentence */}
-                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                           {/* Play Sentence Audio */}
                           <button
                             onClick={() => handlePlaySentence(item.arabic, item.id)}
-                            className={`p-3 rounded-2xl flex items-center justify-center transition-all ${
+                            className={`p-2 sm:p-2.5 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                               isPlaying
                                 ? 'bg-amber-500 text-white animate-pulse ring-2 ring-amber-400'
-                                : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 shadow-sm'
+                                : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 shadow-xs'
                             }`}
                             title="استمع للجملة"
                           >
-                            <Volume2 className="w-5 h-5" />
+                            <Volume2 className="w-4 h-4" />
                           </button>
 
                           {/* Mask/Unmask for Memory Testing */}
@@ -1196,6 +1540,44 @@ export const UnitCurriculumLab: React.FC<UnitCurriculumLabProps> = ({
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Word Substitution Lab Section (رَكِّبْ وَاقْرَأْ - مَهَارَةُ التَّعْوِيضِ) */}
+              <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-amber-950 text-white p-6 rounded-3xl shadow-xl border border-emerald-500/40 space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="bg-amber-400 text-slate-950 text-xs font-black px-3 py-0.5 rounded-full">
+                      مهارة التعويض التركيبية 🔄
+                    </span>
+                    <h3 className="text-xl font-black text-amber-200 font-arabic">
+                      رَكِّبْ وَاقْرَأْ: تَوْلِيدُ الْكَلِمَاتِ بِتَغْيِيرِ الْحَرْفِ الأَوَّلِ
+                    </h3>
+                    <p className="text-xs text-emerald-200 font-arabic">
+                      استبدل الحرف الأول باستخدام الأسهم (▲ ▼) للحصول على كلمات جديدة من خلال مهارة التعويض
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setShowSubstitutionLab(!showSubstitutionLab);
+                      playSoundEffect('tap');
+                    }}
+                    className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 shadow-lg transition-all active:scale-95 shrink-0"
+                  >
+                    <span>{showSubstitutionLab ? 'إخفاء مختبر التعويض 🔼' : 'فتح قسم رَكِّبْ وَاقْرَأْ (التعويض 🔄)'}</span>
+                    <Sparkles className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {showSubstitutionLab && (
+                  <div className="pt-4 border-t border-emerald-700/50">
+                    <WordSubstitutionLab
+                      language={language}
+                      onEarnXp={onEarnXp}
+                      isCompactMode={true}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

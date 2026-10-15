@@ -14,18 +14,20 @@ import {
   HelpCircle,
   Layers,
   GraduationCap,
-  FileText
+  FileText,
 } from 'lucide-react';
 import { FIRST_GRADE_READING_DATA, ReadingCategory, WordItem } from '../data/readingLabData';
 import { speakArabic, playSoundEffect } from '../utils/audio';
 import confetti from 'canvas-confetti';
 import { SupportedLanguage } from '../types';
+import { WordSubstitutionLab } from './WordSubstitutionLab';
 
 interface ReadingLabModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: SupportedLanguage;
   initialCategoryId?: string;
+  initialTab?: 'grid' | 'compose' | 'game' | 'worksheet';
 }
 
 export const ReadingLabModal: React.FC<ReadingLabModalProps> = ({
@@ -33,6 +35,7 @@ export const ReadingLabModal: React.FC<ReadingLabModalProps> = ({
   onClose,
   language,
   initialCategoryId,
+  initialTab = 'grid',
 }) => {
   const [selectedCatId, setSelectedCatId] = useState<string>(
     initialCategoryId || FIRST_GRADE_READING_DATA[0].id
@@ -41,7 +44,7 @@ export const ReadingLabModal: React.FC<ReadingLabModalProps> = ({
   const [isSlowAudio, setIsSlowAudio] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [activePlayIdx, setActivePlayIdx] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'grid' | 'game' | 'worksheet'>('grid');
+  const [activeTab, setActiveTab] = useState<'grid' | 'compose' | 'game' | 'worksheet'>(initialTab);
 
   // Game state
   const [gameScore, setGameScore] = useState(0);
@@ -268,6 +271,18 @@ export const ReadingLabModal: React.FC<ReadingLabModalProps> = ({
               >
                 <Sparkles className="w-4 h-4" />
                 <span>{language === 'ar' ? 'تحدي القراءة السريعة' : 'Défi de Lecture'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('compose')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  activeTab === 'compose'
+                    ? 'bg-gradient-to-r from-emerald-700 via-teal-800 to-amber-600 text-white shadow-xs font-black ring-1 ring-amber-300'
+                    : 'text-emerald-800 hover:bg-emerald-50 bg-emerald-50/70 border border-emerald-200'
+                }`}
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>{language === 'ar' ? 'رَكِّبْ وَاقْرَأْ (التعويض 🔄)' : 'Composer (التعويض)'}</span>
               </button>
             </div>
 
@@ -502,6 +517,16 @@ export const ReadingLabModal: React.FC<ReadingLabModalProps> = ({
                 <div className="mt-6 text-center text-xs text-slate-400">
                   <span>منهاج تعليم القراءة باللغة العربية • الصف الأول متقدم</span>
                 </div>
+              </div>
+            )}
+
+            {/* TAB: Word Substitution & Composition (رَكِّبْ وَاقْرَأْ - مَهَارَةُ التَّعْوِيضِ) */}
+            {activeTab === 'compose' && (
+              <div className="p-2 sm:p-4">
+                <WordSubstitutionLab
+                  language={language}
+                  isCompactMode={true}
+                />
               </div>
             )}
 

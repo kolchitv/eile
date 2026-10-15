@@ -2043,8 +2043,21 @@ export const UNIT_2_FAMILY_COMMUNITY: UnitCurriculum = {
 // Backward compatibility alias:
 export const UNIT_1_FAMILY_COMMUNITY: UnitCurriculum = UNIT_2_FAMILY_COMMUNITY;
 
-// All Official Unit Curriculums for Level A1:
+// Re-export Unit 3 & Unit 4
+import { UNIT_3_HEALTH_HYGIENE, UNIT_4_VILLAGE_CITY } from './units3and4Data';
+export { UNIT_3_HEALTH_HYGIENE, UNIT_4_VILLAGE_CITY };
+
+// Re-export Unit 5 & Unit 6 (Completing the 6 official curriculum units)
+import { UNIT_5_WATER_LIFE, UNIT_6_GAMES_TRAVEL } from './units5and6Data';
+export { UNIT_5_WATER_LIFE, UNIT_6_GAMES_TRAVEL };
+
+// All 6 Official Unit Curriculums for Level A1 (المنهاج السنوي الكامل - 6 وحدات):
 export const ALL_UNIT_CURRICULUMS: UnitCurriculum[] = [
   UNIT_1_SCHOOL_LIFE,
   UNIT_2_FAMILY_COMMUNITY,
+  UNIT_3_HEALTH_HYGIENE,
+  UNIT_4_VILLAGE_CITY,
+  UNIT_5_WATER_LIFE,
+  UNIT_6_GAMES_TRAVEL,
 ];
+

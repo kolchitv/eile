@@ -28,8 +28,9 @@ import {
 } from '../data/readingElementsData';
 import { speakArabic, playSoundEffect } from '../utils/audio';
 import { SupportedLanguage } from '../types';
+import { WordSubstitutionLab } from './WordSubstitutionLab';
 
-export type ReadingHierarchyTab = 'letters' | 'syllables' | 'words' | 'sentences';
+export type ReadingHierarchyTab = 'letters' | 'syllables' | 'compose' | 'words' | 'sentences';
 
 interface ReadingHierarchySectionProps {
   language: SupportedLanguage;
@@ -102,12 +103,12 @@ export const ReadingHierarchySection: React.FC<ReadingHierarchySectionProps> = (
             </div>
           </div>
           <span className="px-3 py-1 bg-amber-100 text-amber-900 font-bold text-xs rounded-full border border-amber-300 self-start sm:self-auto">
-            {language === 'ar' ? '4 مستويات متكاملة' : '4 Niveaux de Lecture'}
+            {language === 'ar' ? '5 مستويات متدرجة للقرائية' : '5 Niveaux de Lecture'}
           </span>
         </div>
 
-        {/* 4 Large Interactive Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3">
+        {/* 5 Large Interactive Pills */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 pt-3">
           {/* 1. حروف Lettres */}
           <button
             onClick={() => {
@@ -122,7 +123,7 @@ export const ReadingHierarchySection: React.FC<ReadingHierarchySectionProps> = (
           >
             <div className="flex items-center gap-1.5">
               <Type className="w-4 h-4 text-amber-800" />
-              <span className="font-arabic text-base sm:text-lg font-black">1. حُرُوف</span>
+              <span className="font-arabic text-base font-black">1. حُرُوف</span>
             </div>
             <span className="text-[10px] font-sans font-bold opacity-80 uppercase tracking-wider">
               Lettres (28)
@@ -143,14 +144,35 @@ export const ReadingHierarchySection: React.FC<ReadingHierarchySectionProps> = (
           >
             <div className="flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-teal-700" />
-              <span className="font-arabic text-base sm:text-lg font-black">2. مَقَاطِع</span>
+              <span className="font-arabic text-base font-black">2. مَقَاطِع</span>
             </div>
             <span className="text-[10px] font-sans font-bold opacity-80 uppercase tracking-wider">
               Syllabes (الحركات والمدود)
             </span>
           </button>
 
-          {/* 3. كلمات Mots */}
+          {/* 3. ركّب واقرأ (التعويض 🔄) */}
+          <button
+            onClick={() => {
+              onSelectSubTab('compose');
+              playSoundEffect('tap');
+            }}
+            className={`p-3 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border-2 text-center ${
+              activeSubTab === 'compose'
+                ? 'bg-gradient-to-br from-emerald-600 via-teal-700 to-amber-600 text-white border-emerald-600 shadow-md ring-2 ring-emerald-400/40 font-black scale-[1.02]'
+                : 'bg-emerald-50/80 hover:bg-emerald-100 text-emerald-950 border-emerald-300'
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <Sparkle className="w-4 h-4 text-amber-300" />
+              <span className="font-arabic text-base font-black">3. رَكِّبْ وَاقْرَأْ</span>
+            </div>
+            <span className="text-[10px] font-sans font-bold text-amber-900 bg-amber-200/80 px-2 py-0.2 rounded-full uppercase tracking-wider">
+              مهارة التعويض 🔄
+            </span>
+          </button>
+
+          {/* 4. كلمات Mots */}
           <button
             onClick={() => {
               onSelectSubTab('words');
@@ -164,14 +186,14 @@ export const ReadingHierarchySection: React.FC<ReadingHierarchySectionProps> = (
           >
             <div className="flex items-center gap-1.5">
               <FileText className="w-4 h-4 text-purple-700" />
-              <span className="font-arabic text-base sm:text-lg font-black">3. كَلِمَات</span>
+              <span className="font-arabic text-base font-black">4. كَلِمَات</span>
             </div>
             <span className="text-[10px] font-sans font-bold opacity-80 uppercase tracking-wider">
               Mots (التهجئة والتقطيع)
             </span>
           </button>
 
-          {/* 4. جمل/نصوص Phrases & Textes */}
+          {/* 5. جمل/نصوص Phrases & Textes */}
           <button
             onClick={() => {
               onSelectSubTab('sentences');
@@ -185,7 +207,7 @@ export const ReadingHierarchySection: React.FC<ReadingHierarchySectionProps> = (
           >
             <div className="flex items-center gap-1.5">
               <AlignJustify className="w-4 h-4 text-rose-700" />
-              <span className="font-arabic text-base sm:text-lg font-black">4. جُمَل / نُصُوص</span>
+              <span className="font-arabic text-base font-black">5. جُمَل / نُصُوص</span>
             </div>
             <span className="text-[10px] font-sans font-bold opacity-80 uppercase tracking-wider">
               Phrases & Textes
@@ -551,7 +573,23 @@ export const ReadingHierarchySection: React.FC<ReadingHierarchySectionProps> = (
       )}
 
       {/* ========================================================================= */}
-      {/* 3. LEVEL 3: WORDS VIEW (كَلِمَات)                                         */}
+      {/* 3. LEVEL 3: COMPOSE & SUBSTITUTE (رَكِّبْ وَاقْرَأْ - مَهَارَةُ التَّعْوِيضِ)          */}
+      {/* ========================================================================= */}
+      {activeSubTab === 'compose' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          <WordSubstitutionLab
+            language={language}
+            onEarnXp={onEarnXp}
+          />
+        </motion.div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. LEVEL 4: WORDS VIEW (كَلِمَات)                                         */}
       {/* ========================================================================= */}
       {activeSubTab === 'words' && (
         <motion.div

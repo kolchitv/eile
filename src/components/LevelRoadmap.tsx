@@ -29,6 +29,12 @@ import {
   Music,
   School,
   Home,
+  HeartPulse,
+  Trees,
+  Droplets,
+  Calendar,
+  Hand,
+  MessageSquare,
 } from 'lucide-react';
 
 interface LevelRoadmapProps {
@@ -43,6 +49,10 @@ interface LevelRoadmapProps {
   onOpenTextStudio?: () => void;
   onOpenCompetencies?: (level?: 'A1' | 'A2') => void;
   onOpenChants?: (chantId?: string) => void;
+  onOpenClassroomConsignes?: () => void;
+  onOpenAcademicCalendar?: () => void;
+  onOpenCommunicativeFunctions?: (level?: 'A1' | 'A2') => void;
+  onSelectLevel?: (level: CEFRLevel) => void;
   onEarnXp?: (amount: number) => void;
   onEarnGems?: (amount: number) => void;
 }
@@ -59,6 +69,10 @@ export const LevelRoadmap: React.FC<LevelRoadmapProps> = ({
   onOpenTextStudio,
   onOpenCompetencies,
   onOpenChants,
+  onOpenClassroomConsignes,
+  onOpenAcademicCalendar,
+  onOpenCommunicativeFunctions,
+  onSelectLevel,
   onEarnXp,
   onEarnGems,
 }) => {
@@ -329,42 +343,336 @@ export const LevelRoadmap: React.FC<LevelRoadmapProps> = ({
         </div>
       )}
 
-      {/* Special Feature: Unit 1 Official Syllabus (المجال الثاني: الأسرة والمحيط) */}
+      {/* ========================================================================= */}
+      {/* 6 OFFICIAL DOMAINS OF LEVEL A1 (منهاج اللغة العربية الرسمي - 6 مجالات متكاملة) */}
+      {/* ========================================================================= */}
       {onOpenUnit1Lab && (
-        <div
-          onClick={onOpenUnit1Lab}
-          className="p-6 rounded-3xl bg-gradient-to-r from-emerald-800 via-teal-900 to-amber-950 text-white shadow-xl border-2 border-amber-400/80 hover:border-amber-300 transition-all cursor-pointer group flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-48 h-48 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
-          
-          <div className="space-y-2 relative z-10">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                توزيع منهاج 2024/2025
-              </span>
-              <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                5 مكونات متكررة + حوارات التعارف
-              </span>
+        <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-950 text-white shadow-xl border-2 border-amber-400/80 space-y-5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative z-10 border-b border-emerald-800/60 pb-4">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  المنهاج الرسمي 2025/2026
+                </span>
+                <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-400/30">
+                  المستوى التأسيسي A1 • 6 مجالات • 36 حصة • 28 حرفاً
+                </span>
+                <span className="bg-white/10 text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  وضع الحفظ المدمج بدون سكرول 🧠
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-amber-200 font-arabic">
+                {language === 'ar' ? 'المجالات الستة لمنهاج المستوى الأول (A1)' : 'Les 6 Domaines Officiels du Niveau A1'}
+              </h3>
+              <p className="text-xs text-emerald-200 font-sans max-w-2xl">
+                {language === 'fr'
+                  ? 'Programme officiel complet réparti en 6 unités thématiques : 5 composantes intégrées par séance (dialogue, consignes, expression, lecture, écriture) couvrant les 28 lettres.'
+                  : 'توزيع المنهاج الرسمي الكامل عبر ست وحدات دراسية متدرجة: حوارات التحدث، فهم التعليمات، الاسترسال والنشيد، فهم المكتوب والكتابة لكافة الحروف الهجائية.'}
+              </p>
             </div>
-            
-            <h3 className="text-xl sm:text-2xl font-black text-amber-200 font-arabic">
-              المجال الثاني: الأُسْرَةُ وَالمُحِيطُ (الحصص 1 إلى 6)
-            </h3>
-            
-            <p className="text-xs sm:text-sm text-emerald-100 font-sans max-w-xl">
-              {language === 'fr'
-                ? 'Dialogues de présentation en phrases courtes à mémoriser, consignes de classe, parler en continu, lecture (م، ك، ل، ن، س) et fiche d’identité.'
-                : 'حوارات التعارف مقسمة لجمل قصيرة للحفظ والتسميع، تعليمات القسم، الاسترسال والنشيد، القراءة والكتابة وبطاقة التعريف.'}
-            </p>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  onOpenUnit1Lab('unit-1-school');
+                  playSoundEffect('tap');
+                }}
+                className="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <span>فتح مختبر المنهاج ➔</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 relative z-10 self-end md:self-center shrink-0">
-            <div className="text-right hidden sm:block">
-              <span className="text-xs font-bold text-amber-300 block">6 حصص تفاعلية</span>
-              <span className="text-[10px] text-emerald-200 block">وضع التسميع الفوري 🧠</span>
+          {/* Official Reference Tools Shortcuts Bar */}
+          <div className="relative z-10 p-3 rounded-2xl bg-black/40 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-2.5">
+            <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>المراجع الرسمية المعتمدة (EILE & éduscol):</span>
+            </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {onOpenAcademicCalendar && (
+                <button
+                  onClick={() => {
+                    onOpenAcademicCalendar();
+                    playSoundEffect('tap');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold border border-emerald-500/50 flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="عرض التوزيع الزمني والعطل والامتحانات"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-amber-300" />
+                  <span>تنظيم السنة الدراسية 2025/2026</span>
+                </button>
+              )}
+
+              {onOpenClassroomConsignes && (
+                <button
+                  onClick={() => {
+                    onOpenClassroomConsignes();
+                    playSoundEffect('tap');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-teal-800 hover:bg-teal-700 text-white text-xs font-bold border border-teal-500/50 flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="34 تعليمة رسمية مصحوبة بالوضعيات والحركات الجسدية"
+                >
+                  <Hand className="w-3.5 h-3.5 text-amber-300" />
+                  <span>لغة القسم والإشارات (EILE)</span>
+                </button>
+              )}
+
+              {onOpenCommunicativeFunctions && (
+                <button
+                  onClick={() => {
+                    onOpenCommunicativeFunctions('A1');
+                    playSoundEffect('tap');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="الوظائف التواصلية السبع والمفاهيم الثيماتية"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>الوظائف التواصلية (A1 - A2)</span>
+                </button>
+              )}
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xl shadow-lg group-hover:scale-110 transition-transform">
-              <Play className="w-6 h-6 fill-slate-950 ml-0.5" />
+          </div>
+
+          {/* 6 Interactive Domain Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 relative z-10">
+            {/* Domain 1: School */}
+            <div
+              onClick={() => {
+                onOpenUnit1Lab('unit-1-school');
+                playSoundEffect('tap');
+              }}
+              className="p-4 rounded-2xl bg-white/10 hover:bg-white/15 border-2 border-emerald-500/50 hover:border-amber-400 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center justify-center">
+                    <School className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded text-amber-300">
+                    الوحدة 1
+                  </span>
+                </div>
+                <h4 className="font-arabic font-black text-sm text-amber-100 group-hover:text-amber-300 transition-colors">
+                  المجال 1: الحَيَاةُ المَدْرَسِيَّةُ
+                </h4>
+                <p className="text-[11px] text-slate-300 font-sans line-clamp-2">
+                  {language === 'fr' ? 'La vie scolaire, salutations & rentrée des classes' : 'الدخول المدرسي والتعارف وأدوات القسم والنشيد'}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">الحروف:</span>
+                  <div className="flex items-center gap-1 font-arabic font-black text-xs text-amber-300">
+                    <span>د</span> • <span>ر</span> • <span>ب</span> • <span>ت</span> • <span>ج</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-emerald-300 font-bold">
+                  <span>6 حصص تفاعلية</span>
+                  <span className="group-hover:translate-x-1 transition-transform">بدء الوحدة ➔</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Domain 2: Family */}
+            <div
+              onClick={() => {
+                onOpenUnit1Lab('unit-1-family');
+                playSoundEffect('tap');
+              }}
+              className="p-4 rounded-2xl bg-white/10 hover:bg-white/15 border-2 border-teal-500/50 hover:border-amber-400 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-teal-400/20 text-teal-300 border border-teal-400/40 flex items-center justify-center">
+                    <Home className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded text-amber-300">
+                    الوحدة 2
+                  </span>
+                </div>
+                <h4 className="font-arabic font-black text-sm text-amber-100 group-hover:text-amber-300 transition-colors">
+                  المجال 2: الأُسْرَةُ وَالمُحِيطُ
+                </h4>
+                <p className="text-[11px] text-slate-300 font-sans line-clamp-2">
+                  {language === 'fr' ? 'La famille et l’environnement proche' : 'أفراد الأسرة، البيت، تعليمات القسم وبطاقة التعريف'}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">الحروف:</span>
+                  <div className="flex items-center gap-1 font-arabic font-black text-xs text-amber-300">
+                    <span>م</span> • <span>ك</span> • <span>ل</span> • <span>ن</span> • <span>س</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-teal-300 font-bold">
+                  <span>6 حصص تفاعلية</span>
+                  <span className="group-hover:translate-x-1 transition-transform">بدء الوحدة ➔</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Domain 3: Health & Hygiene */}
+            <div
+              onClick={() => {
+                onOpenUnit1Lab('unit-3-health');
+                playSoundEffect('tap');
+              }}
+              className="p-4 rounded-2xl bg-white/10 hover:bg-white/15 border-2 border-rose-500/50 hover:border-amber-400 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-rose-400/20 text-rose-300 border border-rose-400/40 flex items-center justify-center">
+                    <HeartPulse className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded text-amber-300">
+                    الوحدة 3
+                  </span>
+                </div>
+                <h4 className="font-arabic font-black text-sm text-amber-100 group-hover:text-amber-300 transition-colors">
+                  المجال 3: الهِنْدَامُ وَالصِّحَّةُ
+                </h4>
+                <p className="text-[11px] text-slate-300 font-sans line-clamp-2">
+                  {language === 'fr' ? 'Hygiène corporelle, nutrition & vitalité' : 'نظافة الجسم، عيادة الطبيب، الغذاء الصحي والرياضة'}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">الحروف:</span>
+                  <div className="flex items-center gap-1 font-arabic font-black text-xs text-amber-300">
+                    <span>ف</span> • <span>ق</span> • <span>ع</span> • <span>ح</span> • <span>ص</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-rose-300 font-bold">
+                  <span>6 حصص تفاعلية</span>
+                  <span className="group-hover:translate-x-1 transition-transform">بدء الوحدة ➔</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Domain 4: Village & City */}
+            <div
+              onClick={() => {
+                onOpenUnit1Lab('unit-4-village-city');
+                playSoundEffect('tap');
+              }}
+              className="p-4 rounded-2xl bg-white/10 hover:bg-white/15 border-2 border-cyan-500/50 hover:border-amber-400 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-400/20 text-cyan-300 border border-cyan-400/40 flex items-center justify-center">
+                    <Trees className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded text-amber-300">
+                    الوحدة 4
+                  </span>
+                </div>
+                <h4 className="font-arabic font-black text-sm text-amber-100 group-hover:text-amber-300 transition-colors">
+                  المجال 4: القَرْيَةُ وَالمَدِينَةُ
+                </h4>
+                <p className="text-[11px] text-slate-300 font-sans line-clamp-2">
+                  {language === 'fr' ? 'Le village, la ville, les transports & l’écologie' : 'شوارع المدينة، جمال القرية، وسائل النقل وحماية البيئة'}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">الحروف:</span>
+                  <div className="flex items-center gap-1 font-arabic font-black text-xs text-amber-300">
+                    <span>ش</span> • <span>ي</span> • <span>ط</span> • <span>ض</span> • <span>و</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-cyan-300 font-bold">
+                  <span>6 حصص تفاعلية</span>
+                  <span className="group-hover:translate-x-1 transition-transform">بدء الوحدة ➔</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Domain 5: Water & Life */}
+            <div
+              onClick={() => {
+                onOpenUnit1Lab('unit-5-water');
+                playSoundEffect('tap');
+              }}
+              className="p-4 rounded-2xl bg-white/10 hover:bg-white/15 border-2 border-blue-500/50 hover:border-amber-400 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-blue-400/20 text-blue-300 border border-blue-400/40 flex items-center justify-center">
+                    <Droplets className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded text-amber-300">
+                    الوحدة 5
+                  </span>
+                </div>
+                <h4 className="font-arabic font-black text-sm text-amber-100 group-hover:text-amber-300 transition-colors">
+                  المجال 5: المَاءُ وَالحَيَاةُ وَالطَّبِيعَةُ
+                </h4>
+                <p className="text-[11px] text-slate-300 font-sans line-clamp-2">
+                  {language === 'fr' ? 'L’eau, la pluie, l’arrosage et la préservation de la nature' : 'دورة الماء، المطر، السقي والمحافظة على الثروة المائية'}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">الحروف:</span>
+                  <div className="flex items-center gap-1 font-arabic font-black text-xs text-amber-300">
+                    <span>ظ</span> • <span>غ</span> • <span>خ</span> • <span>ث</span> • <span>ذ</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-blue-300 font-bold">
+                  <span>6 حصص تفاعلية</span>
+                  <span className="group-hover:translate-x-1 transition-transform">بدء الوحدة ➔</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Domain 6: Games & Travel */}
+            <div
+              onClick={() => {
+                onOpenUnit1Lab('unit-6-games-travel');
+                playSoundEffect('tap');
+              }}
+              className="p-4 rounded-2xl bg-white/10 hover:bg-white/15 border-2 border-indigo-500/50 hover:border-amber-400 transition-all cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-400/20 text-indigo-300 border border-indigo-400/40 flex items-center justify-center">
+                    <Compass className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-black/40 px-2 py-0.5 rounded text-amber-300">
+                    الوحدة 6
+                  </span>
+                </div>
+                <h4 className="font-arabic font-black text-sm text-amber-100 group-hover:text-amber-300 transition-colors">
+                  المجال 6: اللَّعِبُ وَالمَرَحُ وَالرِّحْلَاتُ
+                </h4>
+                <p className="text-[11px] text-slate-300 font-sans line-clamp-2">
+                  {language === 'fr' ? 'Jeux de plein air, loisirs, voyages et grand bilan annuel' : 'ألعاب الأطفال، الهوايات، السفر والعطلة وتوليف 28 حرفاً'}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">الحروف:</span>
+                  <div className="flex items-center gap-1 font-arabic font-black text-xs text-amber-300">
+                    <span>ز</span> • <span>هـ</span> • <span>ء</span> • <span className="text-[10px]">28 حرفاً</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-indigo-300 font-bold">
+                  <span>6 حصص تفاعلية</span>
+                  <span className="group-hover:translate-x-1 transition-transform">بدء الوحدة ➔</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
